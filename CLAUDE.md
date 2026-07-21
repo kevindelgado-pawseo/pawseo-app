@@ -73,6 +73,10 @@ Dado que la auditoría es periódica, no continua, los tests son la red de segur
 - **Nota sobre versionamiento de contrato** (matiz sobre `tecnico.md` §2): el riesgo real de mantener vistas `api_v1`/`api_v2` desde el día uno es que aún no existe una v1 en producción — es infraestructura para un problema que todavía no ocurre. Sí es un riesgo real en mobile (a diferencia de web, versiones viejas de la app quedan vivas post-release porque el usuario no actualiza al instante). Regla pragmática: migraciones de tabla vía PostgREST deben ser aditivas (agregar columnas, no renombrar/eliminar) por defecto; introducir vistas versionadas o un nuevo path de Edge Function solo cuando exista un cambio realmente breaking *después* de que haya versiones de la app en la calle — no antes.
 - Rol admin (pendiente en `tecnico.md` §4): preferir tabla `admins` + función `is_admin()` consultada desde políticas RLS, no `service_role key` — mantiene todo bajo el mismo modelo de auth y evita el riesgo de una key con bypass total de RLS.
 
+## Git
+
+- Commits **nunca** llevan trailer `Co-Authored-By: Claude`.
+
 ## Pendiente
 
 Ver §6 de `docs/tecnico.md` para el diseño de modelo de datos y setup de Supabase CLI — ese es el próximo bloque de trabajo real, esto es solo la base de convenciones.
