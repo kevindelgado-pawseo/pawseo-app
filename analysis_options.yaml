@@ -1,0 +1,20 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+
+linter:
+  rules:
+    always_declare_return_types: true
+    avoid_dynamic_calls: true
+    avoid_print: true
+    cancel_subscriptions: true
+    close_sinks: true
+    prefer_final_locals: true
+    prefer_final_in_for_each: true
+    prefer_single_quotes: true
+    require_trailing_commas: true
+    unawaited_futures: true
+    unnecessary_await_in_return: true
