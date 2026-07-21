@@ -3,10 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../features/auth/data/profile_repository.dart';
-import '../../features/auth/presentation/complete_profile_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
 import '../../features/debug_settings/presentation/debug_settings_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
@@ -21,19 +20,18 @@ abstract final class AppRoutes {
   static const splash = '/';
   static const onboarding = '/onboarding';
   static const login = '/login';
+  static const register = '/register';
   static const forgotPassword = '/forgot-password';
   static const resetPassword = '/reset-password';
-  static const completeProfile = '/complete-profile';
   static const home = '/home';
   static const debugSettings = '/debug-settings';
 }
 
-const _authOnlyRoutes = {AppRoutes.login, AppRoutes.forgotPassword};
+const _authOnlyRoutes = {AppRoutes.login, AppRoutes.register, AppRoutes.forgotPassword};
 
 @riverpod
 GoRouter appRouter(Ref ref) {
   final onboardingRepository = ref.watch(onboardingRepositoryProvider);
-  final profileRepository = ref.watch(profileRepositoryProvider);
   final auth = Supabase.instance.client.auth;
 
   final refreshListenable = GoRouterRefreshStream(auth.onAuthStateChange);
@@ -42,7 +40,7 @@ GoRouter appRouter(Ref ref) {
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
     refreshListenable: refreshListenable,
-    redirect: (context, state) async {
+    redirect: (context, state) {
       final location = state.matchedLocation;
 
       // Splash controla su propia salida (espera a que se resuelva el
@@ -57,15 +55,9 @@ GoRouter appRouter(Ref ref) {
         return location == AppRoutes.onboarding ? null : AppRoutes.onboarding;
       }
 
-      final session = auth.currentSession;
-      if (session == null) {
+      final isLoggedIn = auth.currentSession != null;
+      if (!isLoggedIn) {
         return _authOnlyRoutes.contains(location) ? null : AppRoutes.login;
-      }
-
-      if (location == AppRoutes.completeProfile) return null;
-
-      if (!await profileRepository.hasCompletedProfile(session.user.id)) {
-        return AppRoutes.completeProfile;
       }
 
       final isAuthOnlyScreen =
@@ -86,16 +78,16 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
+        path: AppRoutes.register,
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         path: AppRoutes.resetPassword,
         builder: (context, state) => const ResetPasswordScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.completeProfile,
-        builder: (context, state) => const CompleteProfileScreen(),
       ),
       GoRoute(
         path: AppRoutes.home,

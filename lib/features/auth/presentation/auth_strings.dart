@@ -1,25 +1,23 @@
 abstract final class AuthStrings {
-  static const welcomeTitle = 'Bienvenido a Pawseo';
-  static const welcomeSubtitle = 'Inicia sesión para empezar a pasear';
-
-  static const continueWithGoogle = 'Continuar con Google';
-  static const googlePendingConfig = 'Login con Google: pendiente de configurar credenciales OAuth';
+  static const loginTitle = 'Inicia sesión';
+  static const registerTitle = 'Crear cuenta';
 
   static const emailLabel = 'Correo';
   static const passwordLabel = 'Contraseña';
+  static const confirmPasswordLabel = 'Repetir contraseña';
   static const nameLabel = 'Nombre';
 
   static const loginButton = 'Iniciar sesión';
-  static const registerButton = 'Crear cuenta';
+  static const registerButton = 'Registrarse';
+  static const noAccountText = '¿No tienes cuenta?';
   static const forgotPasswordLink = '¿Olvidaste tu contraseña?';
 
-  static const confirmationEmailSentTitle = 'Revisa tu correo';
-  static const confirmationEmailSentBody =
-      'Te enviamos un link de confirmación — ábrelo desde este dispositivo para activar tu cuenta.';
-
-  static const completeProfileTitle = '¿Cómo te llamamos?';
-  static const completeProfileSubtitle = 'Así te vamos a saludar dentro de la app.';
-  static const continueButton = 'Continuar';
+  static const otpTitle = 'Revisa tu correo';
+  static const otpInstructions = 'Te enviamos un código de 6 dígitos — ingrésalo acá para activar tu cuenta.';
+  static const otpCodeLabel = 'Código';
+  static const verifyCodeButton = 'Confirmar';
+  static const resendCodeLink = 'Reenviar código';
+  static const resendCodeSent = 'Te enviamos un código nuevo';
 
   static const forgotPasswordTitle = 'Recuperar contraseña';
   static const forgotPasswordInstructions =
@@ -36,4 +34,5 @@ abstract final class AuthStrings {
   static const requiredField = 'Este campo es obligatorio';
   static const invalidEmail = 'Ingresa un correo válido';
   static const passwordTooShort = 'Usa al menos 6 caracteres';
+  static const passwordMismatch = 'Las contraseñas no coinciden';
 }

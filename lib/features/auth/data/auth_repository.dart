@@ -13,7 +13,6 @@ class AuthRepository {
   final GoTrueClient _auth;
 
   static const passwordResetRedirect = 'pawseo://reset-password';
-  static const emailConfirmationRedirect = 'pawseo://email-confirmed';
 
   Session? get currentSession => _auth.currentSession;
 
@@ -22,12 +21,13 @@ class AuthRepository {
   Future<Result<SignUpOutcome>> signUpWithEmail({
     required String email,
     required String password,
+    required String nombre,
   }) async {
     try {
       final response = await _auth.signUp(
         email: email,
         password: password,
-        emailRedirectTo: emailConfirmationRedirect,
+        data: {'nombre': nombre},
       );
       final outcome = response.session != null
           ? SignUpOutcome.signedIn
@@ -37,6 +37,31 @@ class AuthRepository {
       return Failure(_mapAuthError(e));
     } catch (_) {
       return const Failure('No se pudo crear la cuenta. Intenta de nuevo.');
+    }
+  }
+
+  Future<Result<void>> verifySignUpOtp({
+    required String email,
+    required String token,
+  }) async {
+    try {
+      await _auth.verifyOTP(type: OtpType.signup, email: email, token: token);
+      return const Success(null);
+    } on AuthException catch (e) {
+      return Failure(_mapAuthError(e));
+    } catch (_) {
+      return const Failure('No se pudo verificar el código. Intenta de nuevo.');
+    }
+  }
+
+  Future<Result<void>> resendSignUpOtp(String email) async {
+    try {
+      await _auth.resend(type: OtpType.signup, email: email);
+      return const Success(null);
+    } on AuthException catch (e) {
+      return Failure(_mapAuthError(e));
+    } catch (_) {
+      return const Failure('No se pudo reenviar el código. Intenta de nuevo.');
     }
   }
 
@@ -83,6 +108,8 @@ class AuthRepository {
       'invalid_credentials' => 'Email o contraseña incorrectos.',
       'user_already_exists' => 'Ese correo ya tiene una cuenta — intenta iniciar sesión.',
       'weak_password' => 'La contraseña es muy débil, usa al menos 6 caracteres.',
+      'otp_expired' => 'El código expiró — pide uno nuevo.',
+      'otp_disabled' => 'Código inválido.',
       'over_email_send_rate_limit' => 'Espera un momento antes de volver a intentar.',
       _ => e.message,
     };

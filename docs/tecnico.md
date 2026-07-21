@@ -10,10 +10,32 @@
 - **Flutter**, desarrollo en Windows, apuntando a iOS + Android nativos. **Sin soporte web** — se descartó explícitamente (era solo scaffold por defecto de `flutter create`, nunca un target real); las pruebas se hacen en emuladores Android / dispositivos reales.
 - SDK `supabase_flutter` como puente al backend.
 - Login social:
-  - Google en ambas plataformas (`google_sign_in`) — en progreso, pendiente de credenciales OAuth (ver `docs/specs/auth.md`).
+  - Google en ambas plataformas (`google_sign_in`): **pausado** — se decidió usar solo email/contraseña por ahora (2026-07-21) para simplificar mientras se estabiliza el flujo base. Ver runbook más abajo ("Runbook: retomar Google Sign-In") para retomarlo sin repetir la investigación.
   - Sign in with Apple en iOS (`sign_in_with_apple`): **diferido**, no por decisión técnica sino porque requiere Apple Developer Program pagado (~USD 99/año) que aún no se justifica en esta etapa. Recordar que sigue siendo obligatorio por política de Apple el día que se ofrezca login social de terceros en iOS.
   - Botones de login: usar componentes/branding oficiales de cada proveedor cuando se implemente (Apple exige su componente nativo con estilos cerrados; Google tiene guías de marca propias). El resto de la pantalla de login es diseño custom.
 - Detección de plataforma con `defaultTargetPlatform` (`flutter/foundation.dart`), no `dart:io Platform` — es testeable (override en tests) y no rompe compilación web si alguna vez se reconsidera ese target.
+
+#### Runbook: retomar Google Sign-In
+
+Enfoque elegido: SDK nativo (`google_sign_in`) + `supabase.auth.signInWithIdToken(...)`, no el flujo OAuth por redirect a navegador (mejor UX, sin salto a browser).
+
+**1. Google Cloud Console** ([console.cloud.google.com](https://console.cloud.google.com)) — crear proyecto "Pawseo".
+
+**2. OAuth consent screen**: tipo External, nombre "Pawseo", correo de soporte. Queda en modo "Testing" — **hay que agregar manualmente cada cuenta que vaya a probar el login como "Test user"**, si no Google la bloquea aunque todo lo demás esté bien configurado. Se verá el aviso "Google hasn't verified this app" al loguearse — normal en Testing, se saca publicando la app (no urgente).
+
+**3. Client ID tipo Web** (obligatorio aunque el login sea nativo — Supabase lo usa para verificar el `aud` del ID token):
+- Authorized redirect URI: `https://mdbtiiansvorkvneadvx.supabase.co/auth/v1/callback`
+- Guardar el Client ID y Client Secret → van en Supabase (paso 5).
+
+**4. Client ID tipo Android** — uno por bundle id/flavor, Google los trata como apps distintas:
+- Dev: package `cl.pawseo.app.dev`, SHA-1 del debug keystore: `EE:5B:D3:9F:EF:78:83:5C:0E:94:96:2B:3A:B8:0C:98:FF:0B:B8:D9`
+- Prod: package `cl.pawseo.app`, con el SHA-1 de la keystore de release (cuando exista).
+
+**5. Supabase**: Authentication → Providers → Google → pegar Client ID + Secret del Web client (paso 3, no el de Android).
+
+**6. Flutter**: `google_sign_in` inicializado con `serverClientId` = el Web Client ID (paso 3) — así el ID token nativo tiene la audiencia que Supabase espera. **No hace falta `google-services.json`** — eso es de Firebase Auth, no lo usamos.
+
+**Posible piedra en el camino** (no confirmada aún): puede requerirse desactivar el chequeo de `nonce` en Supabase para que el login nativo de Google funcione bien en Android — revisar si aparece error de nonce al retomar esto.
 
 ### 1.1 Ambientes (dev / prod)
 
