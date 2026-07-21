@@ -1,4 +1,4 @@
-package com.example.pawseo
+package cl.pawseo.app
 
 import io.flutter.embedding.android.FlutterActivity
 

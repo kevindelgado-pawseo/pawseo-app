@@ -10,10 +10,20 @@
 - **Flutter**, desarrollo en Windows, apuntando a iOS + Android nativos. **Sin soporte web** — se descartó explícitamente (era solo scaffold por defecto de `flutter create`, nunca un target real); las pruebas se hacen en emuladores Android / dispositivos reales.
 - SDK `supabase_flutter` como puente al backend.
 - Login social:
-  - Google en ambas plataformas (`google_sign_in`).
-  - Sign in with Apple en iOS (`sign_in_with_apple`) — obligatorio por política de Apple al ofrecer login social de terceros.
-  - Botones de login: usar componentes/branding oficiales de cada proveedor (Apple exige su componente nativo con estilos cerrados; Google tiene guías de marca propias). El resto de la pantalla de login es diseño custom.
-- Detección de plataforma con `Platform.isIOS` / `Platform.isAndroid` (paquete `dart:io`) para mostrar u ocultar el botón de Apple.
+  - Google en ambas plataformas (`google_sign_in`) — en progreso, pendiente de credenciales OAuth (ver `docs/specs/auth.md`).
+  - Sign in with Apple en iOS (`sign_in_with_apple`): **diferido**, no por decisión técnica sino porque requiere Apple Developer Program pagado (~USD 99/año) que aún no se justifica en esta etapa. Recordar que sigue siendo obligatorio por política de Apple el día que se ofrezca login social de terceros en iOS.
+  - Botones de login: usar componentes/branding oficiales de cada proveedor cuando se implemente (Apple exige su componente nativo con estilos cerrados; Google tiene guías de marca propias). El resto de la pantalla de login es diseño custom.
+- Detección de plataforma con `defaultTargetPlatform` (`flutter/foundation.dart`), no `dart:io Platform` — es testeable (override en tests) y no rompe compilación web si alguna vez se reconsidera ese target.
+
+### 1.1 Ambientes (dev / prod)
+
+- **Bundle ID real:** `cl.pawseo.app` (prod), `cl.pawseo.app.dev` (dev, vía `applicationIdSuffix`) — reemplaza el placeholder `com.example.pawseo` del scaffold.
+- **Android**: flavors nativos (`productFlavors` en `android/app/build.gradle.kts`). Dev y prod quedan instalables simultáneamente en el mismo dispositivo con `applicationId` distinto — evita que compartan `SharedPreferences`/sesión de Supabase persistida (Android namespacea el storage por `applicationId`, no por ambiente lógico).
+- **iOS**: diferido. Separar por Scheme/Build Configuration se hace bien solo con Xcode, y no hay Mac en el entorno de desarrollo actual — por ahora un solo target, ambiente seleccionado únicamente vía `--dart-define-from-file`.
+- **Config por ambiente**: `dev.json` / `prod.json` (gitignored) vía `--dart-define-from-file`, mismo mecanismo ya usado para URL/key de Supabase.
+- **Comando de desarrollo:** `flutter run --flavor dev -d <device> --dart-define-from-file=dev.json`.
+- **`prod.json` todavía no existe** — el proyecto Supabase de producción se crea más adelante, cuando el MVP esté listo. `pawseo-dev` es, por ahora, el único ambiente real.
+- El bundle `.dev` no necesita registrarse en App Store Connect/Play Console — mientras solo se instale vía `flutter run`/sideload directo a un dispositivo, nunca toca ninguna consola de tienda. Un tercer ambiente (staging/beta) se evalúa recién en la fase de beta cerrada (`producto.md` §5).
 
 ## 2. Backend — Supabase (BaaS sobre Postgres)
 
@@ -70,7 +80,10 @@
 
 ## 6. Pendiente inmediato
 
-- Diseño completo del modelo de datos: perfiles, mascotas (multi-dueño simétrico), sesiones de paseo, XP/niveles, logros, POIs. (Rachas y amistades: diferidas, ver `producto.md` §7.)
-- `supabase init` + `supabase link` en el repo de Flutter.
+- Diseño completo del modelo de datos: mascotas (multi-dueño simétrico), sesiones de paseo, XP/niveles, logros, POIs. (`perfiles` ya existe — ver `docs/specs/auth.md`. Rachas y amistades: diferidas, ver `producto.md` §7.)
+- Credenciales OAuth de Google (Cloud Console) para completar el login social.
+- Crear el proyecto Supabase de producción cuando el MVP esté listo, y su `prod.json` correspondiente.
 - Definir mecanismo de rol admin para el panel.
 - Resolver ownership definitivo de la cuenta Cloudflare.
+
+~~`supabase init` + `supabase link` en el repo de Flutter~~ — hecho, proyecto `pawseo-dev` linkeado.

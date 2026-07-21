@@ -10,9 +10,12 @@ import 'auth_strings.dart';
 
 enum _AuthMode { login, register }
 
-/// Login e registro real vía Supabase Auth. El botón de Google queda visible
-/// pero sin autenticar todavía — depende de credenciales OAuth que aún no
-/// existen (ver docs/specs/auth.md).
+/// Login e registro real vía Supabase Auth. Login y registro piden
+/// exactamente los mismos campos (correo + contraseña) — el nombre se pide
+/// después, en `CompleteProfileScreen`, así el formulario nunca cambia de
+/// forma al alternar entre modos. El botón de Google queda visible pero sin
+/// autenticar todavía — depende de credenciales OAuth que aún no existen
+/// (ver docs/specs/auth.md).
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -24,25 +27,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _nameController = TextEditingController();
 
   var _mode = _AuthMode.login;
   var _isSubmitting = false;
+  var _confirmationEmailSent = false;
   String? _errorMessage;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _nameController.dispose();
     super.dispose();
-  }
-
-  void _toggleMode() {
-    setState(() {
-      _mode = _mode == _AuthMode.login ? _AuthMode.register : _AuthMode.login;
-      _errorMessage = null;
-    });
   }
 
   Future<void> _submit() async {
@@ -57,20 +52,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    final result = switch (_mode) {
-      _AuthMode.login => await repository.signInWithEmail(email: email, password: password),
-      _AuthMode.register => await repository.signUpWithEmail(
-        email: email,
-        password: password,
-        nombre: _nameController.text.trim(),
-      ),
-    };
+    if (_mode == _AuthMode.login) {
+      final result = await repository.signInWithEmail(email: email, password: password);
+      if (!mounted) return;
+      switch (result) {
+        case Success():
+          break; // el router redirige solo al detectar la sesión nueva
+        case Failure(:final message):
+          setState(() {
+            _isSubmitting = false;
+            _errorMessage = message;
+          });
+      }
+      return;
+    }
 
+    final result = await repository.signUpWithEmail(email: email, password: password);
     if (!mounted) return;
-
     switch (result) {
-      case Success():
-        break; // el router redirige solo a Home al detectar la sesión nueva
+      case Success(value: SignUpOutcome.signedIn):
+        break; // el router redirige solo (y luego a completar perfil)
+      case Success(value: SignUpOutcome.confirmationEmailSent):
+        setState(() {
+          _isSubmitting = false;
+          _confirmationEmailSent = true;
+        });
       case Failure(:final message):
         setState(() {
           _isSubmitting = false;
@@ -87,6 +93,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_confirmationEmailSent) {
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.mark_email_read_rounded,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    AuthStrings.confirmationEmailSentTitle,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(AuthStrings.confirmationEmailSentBody, textAlign: TextAlign.center),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isRegister = _mode == _AuthMode.register;
@@ -131,17 +167,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                if (isRegister) ...[
-                  TextFormField(
-                    controller: _nameController,
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(labelText: AuthStrings.nameLabel),
-                    validator: (value) => (value == null || value.trim().isEmpty)
-                        ? AuthStrings.requiredField
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                SegmentedButton<_AuthMode>(
+                  segments: const [
+                    ButtonSegment(value: _AuthMode.login, label: Text(AuthStrings.loginButton)),
+                    ButtonSegment(value: _AuthMode.register, label: Text(AuthStrings.registerButton)),
+                  ],
+                  selected: {_mode},
+                  onSelectionChanged: (selection) => setState(() {
+                    _mode = selection.first;
+                    _errorMessage = null;
+                  }),
+                ),
+                const SizedBox(height: 24),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -184,11 +221,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 PawseoButton(
                   label: isRegister ? AuthStrings.registerButton : AuthStrings.loginButton,
                   onPressed: _isSubmitting ? null : _submit,
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: _isSubmitting ? null : _toggleMode,
-                  child: Text(isRegister ? AuthStrings.toggleToLogin : AuthStrings.toggleToRegister),
                 ),
               ],
             ),

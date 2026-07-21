@@ -19,7 +19,8 @@ Specs de features individuales viven en `docs/specs/`, siguiendo el formato de [
 - **Riverpod** (`riverpod_generator`, sin `flutter_hooks`) para estado y DI. Motivo: menos boilerplate que Bloc vía code-gen, providers testeables por override, encaja natural con el patrón repository.
 - **go_router** para navegación. Motivo: recomendación oficial del equipo Flutter, deep linking de primera clase — necesario para el flujo de invitación de perro compartido (código/enlace).
 - **freezed + json_serializable** para modelos inmutables (evita bugs de `copyWith`/`==`/serialización escritos a mano). Postgres usa `snake_case`, Dart usa `camelCase` → mapeo vía `fieldRename: FieldRename.snake` en `build.yaml`, no anotaciones sueltas por campo.
-- **flutter_dotenv** o `--dart-define-from-file` con JSON por ambiente (`dev.json`, gitignored) para URL/anon key de Supabase. La `service_role key` nunca va en el cliente Flutter, bajo ninguna circunstancia.
+- `--dart-define-from-file` con JSON por ambiente (`dev.json`/`prod.json`, gitignored) para URL/anon key de Supabase — no `flutter_dotenv` (ese empaqueta el archivo como asset plano dentro del binario compilado; `dart-define` lo deja como constante de compilación). La `service_role key` nunca va en el cliente Flutter, bajo ninguna circunstancia.
+- **Ambientes**: flavors de Android (`dev`/`prod`, bundle id `cl.pawseo.app[.dev]`) — correr con `flutter run --flavor dev -d <device> --dart-define-from-file=dev.json`. Ver `docs/tecnico.md` §1.1 para el detalle (iOS diferido, sin Mac disponible).
 
 ## Arquitectura de carpetas
 
@@ -48,6 +49,7 @@ lib/
 - **Patrón repository obligatorio**: la UI y el `domain/` nunca llaman a `supabase.from(...)` directo. Una clase por agregado (`DogsRepository`, `WalksRepository`) decide internamente si usa PostgREST o una Edge Function.
 - **Manejo de errores**: los repositories nunca dejan escapar `PostgrestException`/`AuthException` crudas hacia la UI. Envolver en un `Result<T>` sellado (sealed class con Dart 3, sin librería FP externa — no se justifica para este tamaño de proyecto) con casos `Success`/`Failure`.
 - **Herramientas de desarrollo (checks de dispositivo, feature flags, resets)**: viven todas en `features/debug_settings/` como entradas de una sola pantalla (`DebugSettingsScreen`), no dispersas como botones sueltos en pantallas reales. La ruta se registra solo con `kDebugMode` (`core/router/app_router.dart`) — no existe ni es alcanzable en un build de release.
+- **`SplashScreen`** (`features/splash/`) es la entrada única de la app (`initialLocation` del router, ruta `/`) — espera a que se resuelva el estado de auth persistido antes de dejar que el `redirect` decida el destino real, evitando el flash de la pantalla equivocada al reabrir la app. Es el lugar designado para futuras cargas de arranque (config remota, feature flags) — no agregar splashes/loaders ad-hoc en otras pantallas para eso.
 
 ## Convenciones de código
 

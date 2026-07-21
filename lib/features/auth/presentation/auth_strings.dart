@@ -11,9 +11,15 @@ abstract final class AuthStrings {
 
   static const loginButton = 'Iniciar sesión';
   static const registerButton = 'Crear cuenta';
-  static const toggleToRegister = '¿No tienes cuenta? Regístrate';
-  static const toggleToLogin = '¿Ya tienes cuenta? Inicia sesión';
   static const forgotPasswordLink = '¿Olvidaste tu contraseña?';
+
+  static const confirmationEmailSentTitle = 'Revisa tu correo';
+  static const confirmationEmailSentBody =
+      'Te enviamos un link de confirmación — ábrelo desde este dispositivo para activar tu cuenta.';
+
+  static const completeProfileTitle = '¿Cómo te llamamos?';
+  static const completeProfileSubtitle = 'Así te vamos a saludar dentro de la app.';
+  static const continueButton = 'Continuar';
 
   static const forgotPasswordTitle = 'Recuperar contraseña';
   static const forgotPasswordInstructions =

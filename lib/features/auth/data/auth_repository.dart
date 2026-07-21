@@ -5,29 +5,34 @@ import '../../../core/utils/result.dart';
 
 part 'auth_repository.g.dart';
 
+enum SignUpOutcome { signedIn, confirmationEmailSent }
+
 class AuthRepository {
   AuthRepository(this._auth);
 
   final GoTrueClient _auth;
 
   static const passwordResetRedirect = 'pawseo://reset-password';
+  static const emailConfirmationRedirect = 'pawseo://email-confirmed';
 
   Session? get currentSession => _auth.currentSession;
 
   Stream<AuthState> get authStateChanges => _auth.onAuthStateChange;
 
-  Future<Result<void>> signUpWithEmail({
+  Future<Result<SignUpOutcome>> signUpWithEmail({
     required String email,
     required String password,
-    required String nombre,
   }) async {
     try {
-      await _auth.signUp(
+      final response = await _auth.signUp(
         email: email,
         password: password,
-        data: {'nombre': nombre},
+        emailRedirectTo: emailConfirmationRedirect,
       );
-      return const Success(null);
+      final outcome = response.session != null
+          ? SignUpOutcome.signedIn
+          : SignUpOutcome.confirmationEmailSent;
+      return Success(outcome);
     } on AuthException catch (e) {
       return Failure(_mapAuthError(e));
     } catch (_) {

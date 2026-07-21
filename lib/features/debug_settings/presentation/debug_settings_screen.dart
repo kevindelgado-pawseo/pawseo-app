@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../auth/data/profile_repository.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 
 /// Herramientas de desarrollo — la ruta solo se registra con kDebugMode
@@ -35,6 +36,15 @@ class DebugSettingsScreen extends ConsumerWidget {
             onTap: () async {
               await ref.read(authRepositoryProvider).signOut();
               if (context.mounted) context.go(AppRoutes.login);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: const Text('Borrar nombre de perfil'),
+            subtitle: const Text('Vuelve a mostrar la pantalla de completar perfil'),
+            onTap: () async {
+              await ref.read(profileRepositoryProvider).clearNombreForTesting();
+              if (context.mounted) context.go(AppRoutes.completeProfile);
             },
           ),
         ],
