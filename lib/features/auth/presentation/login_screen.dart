@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,8 +21,11 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> with FormSubmissionMixin {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  // Precarga solo en debug -- comodidad de desarrollo, nunca en release.
+  final _emailController = TextEditingController(
+    text: kDebugMode ? 'kevin.delgado@pawseo.cl' : '',
+  );
+  final _passwordController = TextEditingController(text: kDebugMode ? 'hola123' : '');
 
   @override
   void dispose() {
