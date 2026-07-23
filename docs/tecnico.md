@@ -102,7 +102,7 @@ Enfoque elegido: SDK nativo (`google_sign_in`) + `supabase.auth.signInWithIdToke
 
 ## 6. Pendiente inmediato
 
-- Diseño completo del modelo de datos: mascotas (multi-dueño simétrico), sesiones de paseo, XP/niveles, logros, POIs. (`perfiles` ya existe — ver `docs/specs/auth.md`. Rachas y amistades: diferidas, ver `producto.md` §7.)
+- Modelo de datos: `mascotas`/`paseos` (multi-dueño simétrico, con sus catálogos y el bucket de fotos) ya migrados y aplicados en `pawseo-dev`. XP/niveles (`stats`), logros y POIs siguen solo en diseño, sin migración — ver `docs/modelo_datos.md`. (`perfiles` ya existe — ver `docs/specs/auth.md`. Rachas y amistades: diferidas, ver `producto.md` §7.)
 - Credenciales OAuth de Google (Cloud Console) para completar el login social.
 - Crear el proyecto Supabase de producción cuando el MVP esté listo, y su `prod.json` correspondiente.
 - Definir mecanismo de rol admin para el panel.

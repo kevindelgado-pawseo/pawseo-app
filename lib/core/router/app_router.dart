@@ -9,6 +9,7 @@ import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
 import '../../features/debug_settings/presentation/debug_settings_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/mascotas/presentation/crear_mascota_screen.dart';
 import '../../features/onboarding/data/onboarding_repository.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -24,6 +25,7 @@ abstract final class AppRoutes {
   static const forgotPassword = '/forgot-password';
   static const resetPassword = '/reset-password';
   static const home = '/home';
+  static const crearMascota = '/mascotas/crear';
   static const debugSettings = '/debug-settings';
 }
 
@@ -92,6 +94,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.crearMascota,
+        builder: (context, state) => const CrearMascotaScreen(),
       ),
       if (kDebugMode)
         GoRoute(
