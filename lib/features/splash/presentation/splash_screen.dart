@@ -16,7 +16,7 @@ class SplashScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(authStateChangesProvider, (previous, next) {
-      if (!next.isLoading) context.go(AppRoutes.home);
+      if (!next.isLoading) context.go(AppRoutes.paseo);
     });
 
     final colorScheme = Theme.of(context).colorScheme;

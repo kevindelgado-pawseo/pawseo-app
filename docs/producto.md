@@ -81,7 +81,7 @@ El principio de diseño central: el paseo deja de ser una tarea repetitiva que s
 - Sesión de paseo por tiempo y pasos (podómetro del dispositivo), con soporte para pasear varios perros a la vez.
 - Sistema de experiencia, niveles y logros (por perro).
 - Recordatorio de paseo configurable.
-- Puntos de interés con check-in **verificado por GPS** (proximidad al lugar) e insignias coleccionables (seed inicial: comunas piloto de Santiago).
+- Puntos de interés con check-in **verificado por GPS** (proximidad al lugar) e insignias coleccionables (seed inicial: comunas piloto de Santiago). **Estado (2026-07-24):** el mapa del tab Paseo ya muestra POIs reales como pines (con un seed ilustrativo, no la curación final) — el check-in verificado por GPS y la entrega de recompensa/insignia siguen sin implementar (ver `docs/modelo_datos.md`).
 - Historial de paseos y tarjeta compartible.
 - **Ficha clínica del perro**: raza, sexo, peso, color, características. Pensada para poder mostrarse directamente en una visita al veterinario.
 

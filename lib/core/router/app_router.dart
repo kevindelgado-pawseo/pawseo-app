@@ -29,14 +29,13 @@ abstract final class AppRoutes {
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
   static const resetPassword = '/reset-password';
+
+  /// Tab central/destacado -- el paseo es la razón de ser de la app, así
+  /// que también es el destino post-login (ver `redirect` acá abajo,
+  /// `reset_password_screen.dart` y `splash_screen.dart`).
   static const paseo = '/paseo';
 
-  /// Tab "Mi Mascota" -- se mantiene el nombre `home` porque
-  /// `reset_password_screen.dart`, `splash_screen.dart` y el `redirect` de
-  /// acá abajo ya lo usan como "destino post-login", y ese sigue siendo su
-  /// rol: ahora apunta al tab que "llama la atención" en vez de a una
-  /// pantalla única.
-  static const home = '/home';
+  static const miMascota = '/mi-mascota';
   static const perfil = '/perfil';
   static const crearMascota = '/mascotas/crear';
   static const editarMascota = '/mascotas/editar';
@@ -83,7 +82,7 @@ GoRouter appRouter(Ref ref) {
       final isAuthOnlyScreen =
           location == AppRoutes.onboarding ||
           _authOnlyRoutes.contains(location);
-      return isAuthOnlyScreen ? AppRoutes.home : null;
+      return isAuthOnlyScreen ? AppRoutes.paseo : null;
     },
     routes: [
       GoRoute(
@@ -117,16 +116,16 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.paseo,
-                builder: (context, state) => const PaseoScreen(),
+                path: AppRoutes.miMascota,
+                builder: (context, state) => const MiMascotaScreen(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.home,
-                builder: (context, state) => const MiMascotaScreen(),
+                path: AppRoutes.paseo,
+                builder: (context, state) => const PaseoScreen(),
               ),
             ],
           ),

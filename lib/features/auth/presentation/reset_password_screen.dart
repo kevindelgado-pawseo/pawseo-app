@@ -46,7 +46,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
     switch (result) {
       case Success():
-        context.go(AppRoutes.home);
+        context.go(AppRoutes.paseo);
       case Failure(:final message):
         setState(() {
           _isSubmitting = false;

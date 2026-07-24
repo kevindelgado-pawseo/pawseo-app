@@ -1,7 +1,7 @@
 # Modelo de Datos
 
-**Estado:** `razas`, `colores`, `mascotas`, `mascotas_perfiles`, `paseos`, `paseos_mascotas` y el bucket `mascota-fotos` están migrados y **aplicados en `pawseo-dev`** (`supabase/migrations/2026072301*`, más `20260723153244` — fix de RLS, ver Decisiones — y `20260723162150` — catálogo de colores final). `logros`/`mascotas_logros`/`pois`/`tipos_poi` siguen solo en diseño, sin migración.
-**Fecha:** 2026-07-23 (última actualización)
+**Estado:** `razas`, `colores`, `mascotas`, `mascotas_perfiles`, `paseos`, `paseos_mascotas`, `tipos_poi`, `pois` y el bucket `mascota-fotos` están migrados y **aplicados en `pawseo-dev`** (`supabase/migrations/2026072301*`, más `20260723153244` — fix de RLS, ver Decisiones —, `20260723162150` — catálogo de colores final — y `20260724015629` — POIs, seed ilustrativo en Santiago). `logros`/`mascotas_logros` siguen solo en diseño, sin migración. `paseos_pois` (check-in con recompensa) también sigue sin migrar — ver nota en la sección `pois`.
+**Fecha:** 2026-07-24 (última actualización)
 **Relacionado con:** `docs/producto.md` §7 (alcance MVP), `docs/tecnico.md` §3 (esquema y control de versiones) y §6 (pendiente inmediato)
 
 ---
@@ -106,11 +106,11 @@ Ejemplo concreto ya acordado (aunque el `criterio` estructurado siga pendiente):
 
 `mascota_id` FK, `logro_id` FK, `obtenido_en` timestamptz, PK compuesta.
 
-### `tipos_poi` (catálogo)
+### `tipos_poi` (catálogo, migrado)
 
 `id` uuid PK, `nombre` text — separa lugares públicos (plaza, canil) de comerciales (vet, petshop).
 
-### `pois`
+### `pois` (migrado, `20260724015629_create_pois.sql`)
 
 | Columna | Tipo | Notas |
 |---|---|---|
@@ -125,7 +125,11 @@ Ejemplo concreto ya acordado (aunque el `criterio` estructurado siga pendiente):
 | `recompensa_xp` | integer | |
 | `created_at` | timestamptz | |
 
-Radio de check-in: **fijo, 50m** — constante en código (Edge Function/`domain/`), no columna. No varía por POI todavía.
+RLS de solo lectura (`for select to authenticated using (true)`), sin policy de escritura — se administra a mano vía SQL, no hay panel de administración todavía (`tecnico.md` §4).
+
+**`recompensa_xp` se migró tal como estaba diseñada, pero hoy no tiene ningún consumidor**: el tab Paseo (`paseo_screen.dart`) solo pinta los POIs como marcadores en el mapa — no hay check-in, no se entrega XP, no hay verificación de proximidad GPS. Esa lógica sigue viviendo en la tabla `paseos_pois` (más abajo), que **no se migró** en este cambio a propósito: necesita una Edge Function con verificación GPS real y cooldown anti-farming, es una feature aparte.
+
+Radio de check-in: **fijo, 50m** — constante en código (Edge Function/`domain/`), no columna. No varía por POI todavía. Sigue sin implementar (ver nota de `paseos_pois` arriba).
 
 ---
 
@@ -148,11 +152,11 @@ Radio de check-in: **fijo, 50m** — constante en código (Edge Function/`domain
 - **Invitación de mascota compartida** (código/enlace, `producto.md` §7 / `tecnico.md` §3) — el mecanismo que llena `mascotas_perfiles` no está diseñado.
 - **Estructura de `criterio` en `logros`** — cómo la Edge Function determina automáticamente qué logro desbloquear (¿tipo + valor umbral genérico? ¿lógica específica por logro?).
 - **Recordatorio de paseo configurable** (ítem de alcance del MVP, `producto.md` §7) — sin tabla todavía; falta decidir si es config por `perfil` o por `mascota`, y qué parámetros guarda (hora, días de la semana).
-- **RLS de `razas`, `colores`, `mascotas`, `mascotas_perfiles`, `paseos`, `paseos_mascotas`**: ya implementada (ver migraciones `2026072301*`). Sigue pendiente para `logros`, `mascotas_logros`, `pois`, `tipos_poi` — no existen todavía.
+- **RLS de `razas`, `colores`, `mascotas`, `mascotas_perfiles`, `paseos`, `paseos_mascotas`, `tipos_poi`, `pois`**: ya implementada. Sigue pendiente para `logros`, `mascotas_logros` — no existen todavía.
 - **Rol admin** (`tecnico.md` §4: tabla `admins` + `is_admin()`) — mismo dominio de datos, no evaluado en esta conversación todavía.
 - **POI patrocinado** (fase 3 de negocio, `producto.md` §8) — no bloqueante para MVP; cuando se active, probablemente un flag en `pois` + relación con el comercio dueño.
 - **XP y `stats`**: al detener un paseo hoy no se otorga experiencia -- la tabla `stats` y la curva de niveles siguen sin implementar. El paseo se guarda con su duración, pero no impacta nivel/XP todavía. El tab "Mi Mascota" (`mi_mascota_screen.dart`) ya tiene un placeholder visual de nivel/XP con valores fijos -- pendiente reemplazar por datos reales cuando se diseñe la curva.
-- **Selección de con qué perro(s) salir a pasear**: el botón de iniciar paseo vincula el paseo a TODAS las mascotas del usuario automáticamente -- no hay UI para elegir un subconjunto si tiene más de un perro. Simplificación deliberada para tener el botón funcionando; se revisita cuando se diseñe esa parte de la UI.
+- ~~Selección de con qué perro(s) salir a pasear~~ **Resuelto** (2026-07-24): con 2+ mascotas, el botón "¡Vamos a pawsear!" pregunta con cuáles ir (todas premarcadas por defecto) vía `paseo_mascotas_selector.dart` / `debeMostrarSelectorMascotas` (`paseo_mascota_selection.dart`). Con 1 sola mascota no pregunta, pasea directo con ella.
 - **Conteo de pasos (podómetro)**: `paseos.pasos` queda siempre `null` por ahora -- la integración con el sensor de pasos del dispositivo no está implementada (requiere permisos de Android 10+ y un paquete de pedómetro, se dejó fuera de esta iteración).
 - **Paseo en curso no persiste entre reinicios de la app**: el estado de "hay un paseo activo" vive en memoria (Riverpod), no se recupera si se cierra la app a mitad de un paseo.
 
@@ -173,6 +177,10 @@ Revisado 2026-07-23 — la primera versión (`20260723010000`) mezclaba colores 
 Negro, Blanco, Gris, Café claro, Café oscuro, Dorado, Crema, Rojizo, Otro.
 
 *(`Otro` cubre pelaje mixto/patrón — el detalle fino, si importa, va en `caracteristicas`.)*
+
+### `tipos_poi` / `pois`
+
+Seed **ilustrativo**, no la curación real por comuna piloto que describe `producto.md` §6 — 4 tipos (Plaza, Canil, Veterinaria, Petshop) y 8 POIs de ejemplo en Santiago Centro/Providencia/Ñuñoa/Las Condes/Vitacura (`20260724015629_create_pois.sql`). Reemplazar/expandir cuando exista curación real.
 
 ## Storage buckets — cómo funcionan (para cuando se implemente)
 

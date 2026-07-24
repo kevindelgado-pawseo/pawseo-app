@@ -7,9 +7,10 @@ abstract final class AppShellStrings {
   static const perfilTab = 'Perfil';
 }
 
-/// Shell de navegación por tabs. El tab central (Mi Mascota) se destaca con
-/// una insignia circular de color primario para que "llame la atención" --
-/// se prefirió esto a un layout custom con overflow tipo notch, que es más
+/// Shell de navegación por tabs. El tab central (Paseo) se destaca con una
+/// insignia circular de color primario para que "llame la atención" -- es
+/// la razón de ser de la app, por eso es el tab prominente y no Mi Mascota.
+/// Se prefirió esto a un layout custom con overflow tipo notch, que es más
 /// frágil de verificar sin poder ver la app corriendo en vivo desde acá.
 class AppShell extends StatelessWidget {
   const AppShell({required this.navigationShell, super.key});
@@ -30,13 +31,13 @@ class AppShell extends StatelessWidget {
         ),
         destinations: [
           const NavigationDestination(
-            icon: Icon(Icons.directions_walk_outlined),
-            selectedIcon: Icon(Icons.directions_walk_rounded),
-            label: AppShellStrings.paseoTab,
+            icon: Icon(Icons.pets_outlined),
+            selectedIcon: Icon(Icons.pets_rounded),
+            label: AppShellStrings.miMascotaTab,
           ),
           NavigationDestination(
-            icon: _MiMascotaBadge(colorScheme: colorScheme),
-            label: AppShellStrings.miMascotaTab,
+            icon: _PaseoBadge(colorScheme: colorScheme),
+            label: AppShellStrings.paseoTab,
           ),
           const NavigationDestination(
             icon: Icon(Icons.person_outline_rounded),
@@ -49,8 +50,8 @@ class AppShell extends StatelessWidget {
   }
 }
 
-class _MiMascotaBadge extends StatelessWidget {
-  const _MiMascotaBadge({required this.colorScheme});
+class _PaseoBadge extends StatelessWidget {
+  const _PaseoBadge({required this.colorScheme});
 
   final ColorScheme colorScheme;
 
@@ -64,7 +65,11 @@ class _MiMascotaBadge extends StatelessWidget {
         color: colorScheme.primary,
       ),
       alignment: Alignment.center,
-      child: Icon(Icons.pets_rounded, color: colorScheme.onPrimary, size: 22),
+      child: Icon(
+        Icons.directions_walk_rounded,
+        color: colorScheme.onPrimary,
+        size: 22,
+      ),
     );
   }
 }
