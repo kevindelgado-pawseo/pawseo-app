@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
-import '../../auth/data/auth_repository.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 
 /// Herramientas de desarrollo — la ruta solo se registra con kDebugMode
@@ -26,15 +25,6 @@ class DebugSettingsScreen extends ConsumerWidget {
             onTap: () async {
               await ref.read(onboardingRepositoryProvider).resetOnboarding();
               if (context.mounted) context.go(AppRoutes.onboarding);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.logout_rounded),
-            title: const Text('Cerrar sesión'),
-            subtitle: const Text('Vuelve a la pantalla de login'),
-            onTap: () async {
-              await ref.read(authRepositoryProvider).signOut();
-              if (context.mounted) context.go(AppRoutes.login);
             },
           ),
         ],

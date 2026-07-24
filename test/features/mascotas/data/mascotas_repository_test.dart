@@ -108,4 +108,66 @@ void main() {
       expect(result, isA<Failure<Mascota>>());
     });
   });
+
+  group('MascotasRepository.actualizarFicha', () {
+    test('envía todos los campos de la ficha y devuelve la mascota actualizada', () async {
+      final repository = _repositoryWith((request) async {
+        expect(request.method, 'PATCH');
+        expect(request.url.path, '/rest/v1/mascotas');
+        expect(request.url.queryParameters['id'], 'eq.a1');
+
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body, {
+          'nombre': 'Firulais',
+          'raza_id': 'r1',
+          'fecha_nacimiento': '2020-05-03',
+          'fecha_nacimiento_aproximada': true,
+          'color_id': 'c1',
+          'caracteristicas': 'mancha en la oreja',
+          'sexo': 'Macho',
+          'peso': 8.5,
+        });
+
+        return http.Response(
+          jsonEncode(_mascotaJson()),
+          200,
+          headers: {'content-type': 'application/vnd.pgrst.object+json'},
+          request: request,
+        );
+      });
+
+      final result = await repository.actualizarFicha(
+        'a1',
+        nombre: 'Firulais',
+        razaId: 'r1',
+        fechaNacimiento: DateTime(2020, 5, 3),
+        fechaNacimientoAproximada: true,
+        colorId: 'c1',
+        caracteristicas: 'mancha en la oreja',
+        sexo: 'Macho',
+        peso: 8.5,
+      );
+
+      expect(result, isA<Success<Mascota>>());
+    });
+
+    test('devuelve Failure si la actualización falla', () async {
+      final repository = _repositoryWith((request) async {
+        return http.Response(
+          jsonEncode({'message': 'boom'}),
+          500,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      });
+
+      final result = await repository.actualizarFicha(
+        'a1',
+        nombre: 'Firulais',
+        fechaNacimientoAproximada: false,
+      );
+
+      expect(result, isA<Failure<Mascota>>());
+    });
+  });
 }

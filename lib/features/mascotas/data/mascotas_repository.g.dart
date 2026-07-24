@@ -94,4 +94,83 @@ final class MisMascotasProvider
   }
 }
 
-String _$misMascotasHash() => r'0611097b58969009f561876435d88911b5063009';
+String _$misMascotasHash() => r'5f1f01e044d4a022057cf59ba49ed2705646b4e2';
+
+@ProviderFor(razas)
+final razasProvider = RazasProvider._();
+
+final class RazasProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Raza>>,
+          List<Raza>,
+          FutureOr<List<Raza>>
+        >
+    with $FutureModifier<List<Raza>>, $FutureProvider<List<Raza>> {
+  RazasProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'razasProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$razasHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Raza>> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Raza>> create(Ref ref) {
+    return razas(ref);
+  }
+}
+
+String _$razasHash() => r'20f7aa37eb35d359b68a4b16dda25fc02d530e1c';
+
+@ProviderFor(colores)
+final coloresProvider = ColoresProvider._();
+
+final class ColoresProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<ColorMascota>>,
+          List<ColorMascota>,
+          FutureOr<List<ColorMascota>>
+        >
+    with
+        $FutureModifier<List<ColorMascota>>,
+        $FutureProvider<List<ColorMascota>> {
+  ColoresProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'coloresProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$coloresHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<ColorMascota>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<ColorMascota>> create(Ref ref) {
+    return colores(ref);
+  }
+}
+
+String _$coloresHash() => r'525004bdaa54147a0e144b27838d5a42098b7dbb';

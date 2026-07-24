@@ -7,7 +7,9 @@ part 'color_mascota.g.dart';
 /// `dart:ui`/`material.Color`, que se importa en casi toda la UI.
 @freezed
 abstract class ColorMascota with _$ColorMascota {
-  const factory ColorMascota({required String id, required String nombre}) = _ColorMascota;
+  const factory ColorMascota({required String id, required String nombre}) =
+      _ColorMascota;
 
-  factory ColorMascota.fromJson(Map<String, dynamic> json) => _$ColorMascotaFromJson(json);
+  factory ColorMascota.fromJson(Map<String, dynamic> json) =>
+      _$ColorMascotaFromJson(json);
 }

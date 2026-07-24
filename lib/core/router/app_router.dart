@@ -8,11 +8,16 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
 import '../../features/debug_settings/presentation/debug_settings_screen.dart';
-import '../../features/home/presentation/home_screen.dart';
+import '../../features/mascotas/domain/mascota.dart';
 import '../../features/mascotas/presentation/crear_mascota_screen.dart';
+import '../../features/mascotas/presentation/editar_mascota_screen.dart';
+import '../../features/mascotas/presentation/mi_mascota_screen.dart';
 import '../../features/onboarding/data/onboarding_repository.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/paseos/presentation/paseo_screen.dart';
+import '../../features/perfil/presentation/perfil_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import 'app_shell.dart';
 import 'go_router_refresh_stream.dart';
 
 part 'app_router.g.dart';
@@ -24,12 +29,25 @@ abstract final class AppRoutes {
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
   static const resetPassword = '/reset-password';
+  static const paseo = '/paseo';
+
+  /// Tab "Mi Mascota" -- se mantiene el nombre `home` porque
+  /// `reset_password_screen.dart`, `splash_screen.dart` y el `redirect` de
+  /// acá abajo ya lo usan como "destino post-login", y ese sigue siendo su
+  /// rol: ahora apunta al tab que "llama la atención" en vez de a una
+  /// pantalla única.
   static const home = '/home';
+  static const perfil = '/perfil';
   static const crearMascota = '/mascotas/crear';
+  static const editarMascota = '/mascotas/editar';
   static const debugSettings = '/debug-settings';
 }
 
-const _authOnlyRoutes = {AppRoutes.login, AppRoutes.register, AppRoutes.forgotPassword};
+const _authOnlyRoutes = {
+  AppRoutes.login,
+  AppRoutes.register,
+  AppRoutes.forgotPassword,
+};
 
 @riverpod
 GoRouter appRouter(Ref ref) {
@@ -63,7 +81,8 @@ GoRouter appRouter(Ref ref) {
       }
 
       final isAuthOnlyScreen =
-          location == AppRoutes.onboarding || _authOnlyRoutes.contains(location);
+          location == AppRoutes.onboarding ||
+          _authOnlyRoutes.contains(location);
       return isAuthOnlyScreen ? AppRoutes.home : null;
     },
     routes: [
@@ -91,13 +110,44 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.resetPassword,
         builder: (context, state) => const ResetPasswordScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.home,
-        builder: (context, state) => const HomeScreen(),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.paseo,
+                builder: (context, state) => const PaseoScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (context, state) => const MiMascotaScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.perfil,
+                builder: (context, state) => const PerfilScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.crearMascota,
         builder: (context, state) => const CrearMascotaScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.editarMascota,
+        builder: (context, state) =>
+            EditarMascotaScreen(mascota: state.extra! as Mascota),
       ),
       if (kDebugMode)
         GoRoute(

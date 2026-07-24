@@ -26,12 +26,58 @@ class MascotasRepository {
 
   Future<Result<Mascota>> crearMascota(String nombre) async {
     try {
-      final row = await _client.from('mascotas').insert({'nombre': nombre}).select().single();
+      final row = await _client
+          .from('mascotas')
+          .insert({'nombre': nombre})
+          .select()
+          .single();
       return Success(Mascota.fromJson(row));
     } on PostgrestException catch (_) {
       return const Failure('No se pudo crear la mascota. Intenta de nuevo.');
     } catch (_) {
       return const Failure('No se pudo crear la mascota. Intenta de nuevo.');
+    }
+  }
+
+  /// Actualiza la ficha completa -- el formulario siempre manda el estado
+  /// vigente de todos los campos (incluido `null` para "sin especificar"),
+  /// no un parche parcial.
+  Future<Result<Mascota>> actualizarFicha(
+    String id, {
+    required String nombre,
+    String? razaId,
+    DateTime? fechaNacimiento,
+    required bool fechaNacimientoAproximada,
+    String? colorId,
+    String? caracteristicas,
+    String? sexo,
+    double? peso,
+  }) async {
+    try {
+      final row = await _client
+          .from('mascotas')
+          .update({
+            'nombre': nombre,
+            'raza_id': razaId,
+            'fecha_nacimiento': fechaNacimiento == null
+                ? null
+                : '${fechaNacimiento.year.toString().padLeft(4, '0')}-'
+                      '${fechaNacimiento.month.toString().padLeft(2, '0')}-'
+                      '${fechaNacimiento.day.toString().padLeft(2, '0')}',
+            'fecha_nacimiento_aproximada': fechaNacimientoAproximada,
+            'color_id': colorId,
+            'caracteristicas': caracteristicas,
+            'sexo': sexo,
+            'peso': peso,
+          })
+          .eq('id', id)
+          .select()
+          .single();
+      return Success(Mascota.fromJson(row));
+    } on PostgrestException catch (_) {
+      return const Failure('No se pudo guardar la ficha. Intenta de nuevo.');
+    } catch (_) {
+      return const Failure('No se pudo guardar la ficha. Intenta de nuevo.');
     }
   }
 
@@ -66,16 +112,17 @@ MascotasRepository mascotasRepository(Ref ref) {
 @riverpod
 Future<List<Mascota>> misMascotas(Ref ref) async {
   final result = await ref.watch(mascotasRepositoryProvider).fetchMascotas();
-  return switch (result) {
-    Success(:final value) => value,
-    Failure(:final message) => throw MisMascotasException(message),
-  };
+  return result.getOrThrow();
 }
 
-class MisMascotasException implements Exception {
-  MisMascotasException(this.message);
-  final String message;
+@riverpod
+Future<List<Raza>> razas(Ref ref) async {
+  final result = await ref.watch(mascotasRepositoryProvider).fetchRazas();
+  return result.getOrThrow();
+}
 
-  @override
-  String toString() => message;
+@riverpod
+Future<List<ColorMascota>> colores(Ref ref) async {
+  final result = await ref.watch(mascotasRepositoryProvider).fetchColores();
+  return result.getOrThrow();
 }

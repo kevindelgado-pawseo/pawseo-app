@@ -18,5 +18,6 @@ abstract class Mascota with _$Mascota {
     double? peso,
   }) = _Mascota;
 
-  factory Mascota.fromJson(Map<String, dynamic> json) => _$MascotaFromJson(json);
+  factory Mascota.fromJson(Map<String, dynamic> json) =>
+      _$MascotaFromJson(json);
 }

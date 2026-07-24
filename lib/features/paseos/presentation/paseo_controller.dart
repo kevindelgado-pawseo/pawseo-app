@@ -6,7 +6,11 @@ import '../domain/paseo.dart';
 
 part 'paseo_controller.g.dart';
 
-typedef PaseoControllerState = ({Paseo? paseoActivo, bool isProcessing, String? errorMessage});
+typedef PaseoControllerState = ({
+  Paseo? paseoActivo,
+  bool isProcessing,
+  String? errorMessage,
+});
 
 /// Estado en memoria, no persistido -- si se cierra la app a mitad de un
 /// paseo, al volver a abrirla no queda "en curso" (se resuelve más
@@ -19,11 +23,21 @@ class PaseoController extends _$PaseoController {
   }
 
   Future<void> iniciar(List<String> mascotaIds) async {
-    state = (paseoActivo: state.paseoActivo, isProcessing: true, errorMessage: null);
+    state = (
+      paseoActivo: state.paseoActivo,
+      isProcessing: true,
+      errorMessage: null,
+    );
 
-    final result = await ref.read(paseosRepositoryProvider).iniciarPaseo(mascotaIds);
+    final result = await ref
+        .read(paseosRepositoryProvider)
+        .iniciarPaseo(mascotaIds);
     state = switch (result) {
-      Success(:final value) => (paseoActivo: value, isProcessing: false, errorMessage: null),
+      Success(:final value) => (
+        paseoActivo: value,
+        isProcessing: false,
+        errorMessage: null,
+      ),
       Failure(:final message) => (
         paseoActivo: state.paseoActivo,
         isProcessing: false,
@@ -36,9 +50,15 @@ class PaseoController extends _$PaseoController {
     final activo = state.paseoActivo;
     if (activo == null) return;
 
-    state = (paseoActivo: state.paseoActivo, isProcessing: true, errorMessage: null);
+    state = (
+      paseoActivo: state.paseoActivo,
+      isProcessing: true,
+      errorMessage: null,
+    );
 
-    final result = await ref.read(paseosRepositoryProvider).finalizarPaseo(activo.id);
+    final result = await ref
+        .read(paseosRepositoryProvider)
+        .finalizarPaseo(activo.id);
     state = switch (result) {
       Success() => (paseoActivo: null, isProcessing: false, errorMessage: null),
       Failure(:final message) => (

@@ -43,6 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/.kotlin/
 
 # Env config per ambiente (URL/keys de Supabase) — nunca se commitea
 dev.json

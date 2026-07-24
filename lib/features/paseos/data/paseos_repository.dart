@@ -17,12 +17,20 @@ class PaseosRepository {
   /// `PaseoController`).
   Future<Result<Paseo>> iniciarPaseo(List<String> mascotaIds) async {
     try {
-      final paseoRow = await _client.from('paseos').insert({}).select().single();
+      final paseoRow = await _client
+          .from('paseos')
+          .insert({})
+          .select()
+          .single();
       final paseo = Paseo.fromJson(paseoRow);
 
       await _client
           .from('paseos_mascotas')
-          .insert(mascotaIds.map((id) => {'paseo_id': paseo.id, 'mascota_id': id}).toList());
+          .insert(
+            mascotaIds
+                .map((id) => {'paseo_id': paseo.id, 'mascota_id': id})
+                .toList(),
+          );
 
       return Success(paseo);
     } on PostgrestException catch (_) {

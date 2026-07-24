@@ -8,8 +8,8 @@ import '../data/mascotas_repository.dart';
 import 'mascotas_strings.dart';
 
 /// Solo pide `nombre` -- el resto de la ficha (foto, raza, nacimiento,
-/// color, sexo, peso) se completa después en una ficha editable aparte
-/// (ver docs/modelo_datos.md). Ese editor todavía no existe.
+/// color, sexo, peso) se completa después en `EditarMascotaScreen`,
+/// accesible desde la ficha en el Home.
 class CrearMascotaScreen extends ConsumerStatefulWidget {
   const CrearMascotaScreen({super.key});
 
@@ -32,7 +32,9 @@ class _CrearMascotaScreenState extends ConsumerState<CrearMascotaScreen>
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     await submit(
-      () => ref.read(mascotasRepositoryProvider).crearMascota(_nombreController.text.trim()),
+      () => ref
+          .read(mascotasRepositoryProvider)
+          .crearMascota(_nombreController.text.trim()),
       onSuccess: (_) {
         ref.invalidate(misMascotasProvider);
         if (context.mounted) context.pop();
@@ -58,15 +60,19 @@ class _CrearMascotaScreenState extends ConsumerState<CrearMascotaScreen>
                   controller: _nombreController,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
-                  decoration: const InputDecoration(labelText: MascotasStrings.nombreLabel),
-                  validator: (value) =>
-                      (value == null || value.trim().isEmpty)
-                          ? MascotasStrings.requiredField
-                          : null,
+                  decoration: const InputDecoration(
+                    labelText: MascotasStrings.nombreLabel,
+                  ),
+                  validator: (value) => (value == null || value.trim().isEmpty)
+                      ? MascotasStrings.requiredField
+                      : null,
                 ),
                 if (errorMessage != null) ...[
                   const SizedBox(height: 8),
-                  Text(errorMessage!, style: TextStyle(color: colorScheme.error)),
+                  Text(
+                    errorMessage!,
+                    style: TextStyle(color: colorScheme.error),
+                  ),
                 ],
                 const SizedBox(height: 24),
                 PawseoButton(
