@@ -1,8 +1,21 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+// Machine-local, nunca en el repo (ver android/local.properties). Placeholder
+// vacío hasta que se configure una key real -- ver docs/tecnico.md.
+val googleMapsApiKey: String = localProperties.getProperty("googleMaps.apiKey", "")
 
 android {
     namespace = "cl.pawseo.app"
@@ -24,6 +37,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
     }
 
     flavorDimensions += "env"

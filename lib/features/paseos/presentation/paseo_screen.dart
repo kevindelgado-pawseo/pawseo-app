@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/utils/duration_format.dart';
 import '../../../core/utils/map_defaults.dart';
@@ -56,7 +55,7 @@ class _PaseoMapaSection extends ConsumerStatefulWidget {
 }
 
 class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
-  final _mapController = MapController();
+  GoogleMapController? _mapController;
   Timer? _ticker;
   Duration _elapsed = Duration.zero;
 
@@ -101,7 +100,12 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
           timeLimit: Duration(seconds: 8),
         ),
       );
-      _mapController.move(LatLng(posicion.latitude, posicion.longitude), 16);
+      await _mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(posicion.latitude, posicion.longitude),
+          16,
+        ),
+      );
     } catch (_) {
       // Sin señal a tiempo o servicio no disponible -- el mapa se queda en
       // el fallback, no es un error que deba bloquear el paseo.
@@ -127,24 +131,15 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
 
   Marker _markerFromPoi(Poi poi) {
     return Marker(
-      point: LatLng(poi.latitud, poi.longitud),
-      width: 36,
-      height: 36,
-      child: Tooltip(
-        message: poi.nombre,
-        child: Icon(
-          Icons.location_on_rounded,
-          color: Theme.of(context).colorScheme.primary,
-          size: 36,
-        ),
-      ),
+      markerId: MarkerId(poi.id),
+      position: LatLng(poi.latitud, poi.longitud),
+      infoWindow: InfoWindow(title: poi.nombre, snippet: poi.descripcion),
     );
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
-    _mapController.dispose();
     super.dispose();
   }
 
@@ -167,21 +162,13 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
 
     return Stack(
       children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: const MapOptions(
-            initialCenter: MapDefaults.fallbackCenter,
-            initialZoom: MapDefaults.fallbackZoom,
+        GoogleMap(
+          initialCameraPosition: const CameraPosition(
+            target: MapDefaults.fallbackCenter,
+            zoom: MapDefaults.fallbackZoom,
           ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'cl.pawseo.app',
-            ),
-            MarkerLayer(
-              markers: poisAsync.value?.map(_markerFromPoi).toList() ?? [],
-            ),
-          ],
+          onMapCreated: (controller) => _mapController = controller,
+          markers: poisAsync.value?.map(_markerFromPoi).toSet() ?? {},
         ),
         SafeArea(
           child: Padding(

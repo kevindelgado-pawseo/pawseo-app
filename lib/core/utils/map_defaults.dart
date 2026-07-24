@@ -1,4 +1,4 @@
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// Centro/zoom del mapa cuando no hay (o no se pudo obtener) la ubicación
 /// del usuario -- el mapa y los POIs nunca dependen de tener permiso de
