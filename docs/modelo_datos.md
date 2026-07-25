@@ -180,7 +180,7 @@ Negro, Blanco, Gris, Café claro, Café oscuro, Dorado, Crema, Rojizo, Otro.
 
 ### `tipos_poi` / `pois`
 
-Seed **ilustrativo**, no la curación real por comuna piloto que describe `producto.md` §6 — 4 tipos (Plaza, Canil, Veterinaria, Petshop) y 8 POIs de ejemplo en Santiago Centro/Providencia/Ñuñoa/Las Condes/Vitacura (`20260724015629_create_pois.sql`). Reemplazar/expandir cuando exista curación real.
+4 tipos en el catálogo (Plaza, Canil, Veterinaria, Petshop). El seed ilustrativo inicial (8 POIs repartidos por Santiago, `20260724015629_create_pois.sql`) se reemplazó (`20260725212337_reemplazar_seed_pois.sql`) por 3 POIs reales cerca de Mall Plaza Egaña, Ñuñoa — provistos por Kevin, primer paso real de la curación por comuna piloto que describe `producto.md` §6: Parque Ramón Cruz, Plaza Pedro Montt, Plaza Egaña. El centro por defecto del mapa (`MapDefaults.fallbackCenter`) coincide con esta zona. Seguir expandiendo a medida que se sumen más lugares/comunas.
 
 ## Storage buckets — cómo funcionan (para cuando se implemente)
 
