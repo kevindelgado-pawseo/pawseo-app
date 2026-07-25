@@ -15,6 +15,8 @@ import '../../mascotas/presentation/mascotas_empty_state.dart';
 import '../../mascotas/presentation/mascotas_strings.dart';
 import '../../pois/data/pois_repository.dart';
 import '../../pois/domain/poi.dart';
+import '../../pois/presentation/poi_detalle_sheet.dart';
+import '../../pois/presentation/poi_marker_icon.dart';
 import '../domain/paseo_mascota_selection.dart';
 import 'paseo_controller.dart';
 import 'paseo_mascotas_selector.dart';
@@ -58,6 +60,8 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
   GoogleMapController? _mapController;
   Timer? _ticker;
   Duration _elapsed = Duration.zero;
+  final Map<String, BitmapDescriptor> _markerIcons = {};
+  final Set<String> _iconosPendientes = {};
 
   void _startTicker(DateTime iniciadoEn) {
     _ticker?.cancel();
@@ -129,11 +133,39 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
     unawaited(ref.read(paseoControllerProvider.notifier).iniciar(ids));
   }
 
+  Future<void> _generarIconosFaltantes(List<Poi> pois) async {
+    final faltantes = pois
+        .where(
+          (p) =>
+              !_markerIcons.containsKey(p.id) &&
+              !_iconosPendientes.contains(p.id),
+        )
+        .toList();
+    if (faltantes.isEmpty) return;
+
+    final colorFondo = Theme.of(context).colorScheme.primary;
+    _iconosPendientes.addAll(faltantes.map((p) => p.id));
+
+    final iconos = await Future.wait(
+      faltantes.map((poi) => buildPoiMarkerIcon(poi, colorFondo: colorFondo)),
+    );
+
+    if (!mounted) return;
+    setState(() {
+      for (var i = 0; i < faltantes.length; i++) {
+        _markerIcons[faltantes[i].id] = iconos[i];
+        _iconosPendientes.remove(faltantes[i].id);
+      }
+    });
+  }
+
   Marker _markerFromPoi(Poi poi) {
     return Marker(
       markerId: MarkerId(poi.id),
       position: LatLng(poi.latitud, poi.longitud),
-      infoWindow: InfoWindow(title: poi.nombre, snippet: poi.descripcion),
+      anchor: const Offset(0.5, 0.5),
+      icon: _markerIcons[poi.id] ?? BitmapDescriptor.defaultMarker,
+      onTap: () => mostrarDetallePoi(context, poi),
     );
   }
 
@@ -158,7 +190,12 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
     final controllerState = ref.watch(paseoControllerProvider);
     final paseoActivo = controllerState.paseoActivo;
     final poisAsync = ref.watch(poisProvider);
+    final pois = poisAsync.value ?? const <Poi>[];
     final colorScheme = Theme.of(context).colorScheme;
+
+    if (pois.isNotEmpty) {
+      unawaited(_generarIconosFaltantes(pois));
+    }
 
     return Stack(
       children: [
@@ -168,7 +205,7 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
             zoom: MapDefaults.fallbackZoom,
           ),
           onMapCreated: (controller) => _mapController = controller,
-          markers: poisAsync.value?.map(_markerFromPoi).toSet() ?? {},
+          markers: pois.map(_markerFromPoi).toSet(),
         ),
         SafeArea(
           child: Padding(
