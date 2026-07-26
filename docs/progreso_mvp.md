@@ -22,25 +22,31 @@ Login email/contraseña funcional. Crear mascota (solo `nombre` obligatorio), ed
 
 ### ⬜ Perfil de perro compartible entre cuentas mediante invitación (código/enlace)
 La base de datos ya soporta multi-dueño (`mascotas_perfiles` es una tabla muchos-a-muchos, poblada vía trigger para quien crea la mascota), pero **el mecanismo de invitación en sí — generar un código/enlace y que otra cuenta se sume como segundo dueño — no está diseñado ni construido.**
+📄 Spec: [`specs/invitacion_mascota.md`](specs/invitacion_mascota.md)
 
 ### 🟡 Sesión de paseo por tiempo y pasos, con soporte para pasear varios perros a la vez
 - Tiempo: hecho — iniciar/detener paseo, timer en vivo, se guarda en `paseos`.
 - Multi-perro: hecho — con 2+ mascotas pregunta con cuáles ir (todas premarcadas por defecto), con 1 arranca directo.
 - **Pasos (podómetro): pendiente** — `paseos.pasos` siempre queda `null`, no hay integración con el sensor del dispositivo.
+📄 Spec: [`specs/podometro.md`](specs/podometro.md)
 
 ### ⬜ Sistema de experiencia, niveles y logros (por perro)
 El tab Mi Mascota muestra nivel/XP, pero es un **placeholder visual con valores fijos** — no existe la tabla `stats`, no se calcula ninguna curva de niveles, y terminar un paseo no otorga experiencia todavía. `logros`/`mascotas_logros` tampoco están migrados; falta incluso definir la estructura de `criterio` (cómo se determina automáticamente qué logro desbloquear).
+📄 Specs: [`specs/xp_niveles.md`](specs/xp_niveles.md) · [`specs/logros.md`](specs/logros.md)
 
 ### ⬜ Recordatorio de paseo configurable
 No iniciado — sin tabla, sin UI, sin placeholder siquiera.
+📄 Spec: [`specs/recordatorio_paseo.md`](specs/recordatorio_paseo.md)
 
 ### 🟡 Puntos de interés con check-in verificado por GPS e insignias coleccionables
 - Hecho: `pois`/`tipos_poi` migrados y con RLS, mapa del tab Paseo con estilo cozy propio, marcadores circulares personalizados (foto o inicial), modal de detalle (descripción + XP que otorgaría). Seed real (no ilustrativo) de 3 lugares cerca de Mall Plaza Egaña — falta expandir a la curación completa por comuna piloto.
 - **Pendiente: el check-in en sí.** Hoy el modal siempre dice "nunca has visitado este lugar" porque no existe ningún registro de visitas — ni verificación de proximidad GPS, ni Edge Function, ni cooldown anti-farming (`paseos_pois` no está migrada, a propósito).
 - **Pendiente: insignias coleccionables** — no hay ningún concepto de insignia/badge implementado todavía.
+📄 Spec: [`specs/checkin_pois.md`](specs/checkin_pois.md)
 
 ### ⬜ Historial de paseos y tarjeta compartible
 Cada paseo queda guardado en la base (`paseos`, con duración e inicio/fin), pero **no hay ninguna pantalla que muestre ese historial** — solo se ve el paseo activo mientras está en curso. La tarjeta compartible (foto + estadísticas + nivel para redes sociales) no está iniciada.
+📄 Specs: [`specs/historial_paseos.md`](specs/historial_paseos.md) · [`specs/tarjeta_compartible.md`](specs/tarjeta_compartible.md)
 
 ### ✅ Ficha clínica del perro
 Raza, sexo, peso, color, características, fecha de nacimiento (con opción de aproximada) — todo implementado, con catálogos de razas/colores reales migrados y editable desde `EditarMascotaScreen`.
