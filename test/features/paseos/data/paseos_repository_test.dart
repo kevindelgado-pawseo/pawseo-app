@@ -118,5 +118,41 @@ void main() {
 
       expect(result, isA<Failure<Paseo>>());
     });
+
+    test('incluye pasos en el body cuando se midieron', () async {
+      final repository = _repositoryWith((request) async {
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body['pasos'], 350);
+
+        return http.Response(
+          jsonEncode(_paseoJson(finalizadoEn: '2026-07-23T10:30:00Z')),
+          200,
+          headers: {'content-type': 'application/vnd.pgrst.object+json'},
+          request: request,
+        );
+      });
+
+      final result = await repository.finalizarPaseo('p1', pasos: 350);
+
+      expect(result, isA<Success<Paseo>>());
+    });
+
+    test('omite pasos del body cuando no se pudieron medir', () async {
+      final repository = _repositoryWith((request) async {
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body.containsKey('pasos'), isFalse);
+
+        return http.Response(
+          jsonEncode(_paseoJson(finalizadoEn: '2026-07-23T10:30:00Z')),
+          200,
+          headers: {'content-type': 'application/vnd.pgrst.object+json'},
+          request: request,
+        );
+      });
+
+      final result = await repository.finalizarPaseo('p1');
+
+      expect(result, isA<Success<Paseo>>());
+    });
   });
 }

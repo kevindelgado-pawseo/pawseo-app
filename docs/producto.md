@@ -101,7 +101,7 @@ El principio de diseño central: el paseo deja de ser una tarea repetitiva que s
 |---|---|
 | El loop de juego no basta para cambiar el hábito de paseo. | MVP barato y medible; la métrica norte lo valida o descarta rápido. |
 | Fundador sin perro propio: distancia con el usuario. | Investigación con dueños reales antes del spec; beta cerrada con 5+ hogares perridueños; acompañamiento de paseos reales. |
-| Dispositivos Android de gama baja sin sensor de pasos. | Degradación por capacidades: la sesión funciona solo con tiempo. |
+| Dispositivos sin sensor de pasos (gama baja, o de fábrica sin ese hardware). | Decisión revisada (2026-07-26, ver `specs/podometro.md`): el podómetro es obligatorio, no degradado -- un paseo nunca se guarda sin pasos, esos dispositivos quedan fuera de la función de pasear. |
 | Comercios no dispuestos a pagar (fase 3). | La monetización no se asume en v1; se valida con pitch presencial cuando exista base de usuarios que mostrar. |
 | Copia por parte de un actor grande. | Velocidad + curación hiperlocal + comunidad de barrio como foso defensivo. |
 

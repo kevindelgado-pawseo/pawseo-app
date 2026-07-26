@@ -40,11 +40,17 @@ class PaseosRepository {
     }
   }
 
-  Future<Result<Paseo>> finalizarPaseo(String paseoId) async {
+  /// [pasos] se omite del `update` cuando es `null` -- no se pudo medir (sin
+  /// sensor, permiso denegado, o reinicio del dispositivo a mitad de paseo,
+  /// ver `pasos_caminados.dart`), así que no corresponde tocar la columna.
+  Future<Result<Paseo>> finalizarPaseo(String paseoId, {int? pasos}) async {
     try {
       final row = await _client
           .from('paseos')
-          .update({'finalizado_en': DateTime.now().toUtc().toIso8601String()})
+          .update({
+            'finalizado_en': DateTime.now().toUtc().toIso8601String(),
+            'pasos': ?pasos,
+          })
           .eq('id', paseoId)
           .select()
           .single();

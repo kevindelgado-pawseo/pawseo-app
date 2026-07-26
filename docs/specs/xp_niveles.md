@@ -20,6 +20,7 @@ Es el corazón del loop de gamificación (`producto.md` §3: "cada paseo suma ex
 - Cálculo de XP ganada al finalizar un paseo, vía Edge Function (patrón ya establecido en `tecnico.md` §2 para lógica de negocio con contrato estable).
 - Curva de niveles (fórmula de "cuánta XP se necesita para el siguiente nivel"), calculada en `domain/` y testeada — **no persistida**, se deriva de `experiencia_total` (decisión ya tomada, ver `modelo_datos.md` "Decisiones de diseño").
 - Reemplazo del placeholder en Mi Mascota por los valores reales.
+- Iconos con el nivel de cada mascota que participa, en el lado derecho de la pantalla del tab Paseo, al iniciar el paseo (pedido explícito de Kevin, 2026-07-26) -- **depende de que este spec exista primero**: hoy no hay ningún nivel real que mostrar, y se decidió explícitamente no construir esos iconos con el placeholder de Mi Mascota mientras tanto, esperar a tener XP real.
 
 ## 4. Fuera de este spec
 

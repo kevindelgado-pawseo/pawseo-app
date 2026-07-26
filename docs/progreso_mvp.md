@@ -1,6 +1,6 @@
 # Progreso del MVP
 
-**Fecha:** 2026-07-25
+**Fecha:** 2026-07-26
 **Fuente:** snapshot derivado de `docs/producto.md` §7-8 y `docs/modelo_datos.md`/`docs/tecnico.md` — no es un documento de decisiones, es una foto del avance real. Se desactualiza apenas se implemente algo nuevo; pedir que se regenere después de cada bloque de trabajo grande.
 
 ---
@@ -9,8 +9,8 @@
 
 De los **8 puntos de alcance del MVP** (`producto.md` §7):
 
-- ✅ **Hecho:** 2
-- 🟡 **Parcial:** 2
+- ✅ **Hecho:** 3
+- 🟡 **Parcial:** 1
 - ⬜ **Pendiente:** 4
 
 ---
@@ -24,10 +24,13 @@ Login email/contraseña funcional. Crear mascota (solo `nombre` obligatorio), ed
 La base de datos ya soporta multi-dueño (`mascotas_perfiles` es una tabla muchos-a-muchos, poblada vía trigger para quien crea la mascota), pero **el mecanismo de invitación en sí — generar un código/enlace y que otra cuenta se sume como segundo dueño — no está diseñado ni construido.**
 📄 Spec: [`specs/invitacion_mascota.md`](specs/invitacion_mascota.md)
 
-### 🟡 Sesión de paseo por tiempo y pasos, con soporte para pasear varios perros a la vez
+### ✅ Sesión de paseo por tiempo y pasos, con soporte para pasear varios perros a la vez
 - Tiempo: hecho — iniciar/detener paseo, timer en vivo, se guarda en `paseos`.
 - Multi-perro: hecho — con 2+ mascotas pregunta con cuáles ir (todas premarcadas por defecto), con 1 arranca directo.
-- **Pasos (podómetro): pendiente** — `paseos.pasos` siempre queda `null`, no hay integración con el sensor del dispositivo.
+- **Pasos (podómetro): hecho** (2026-07-26) — sensor de pasos vía `pedometer` (`TYPE_STEP_COUNTER` en Android, `CMPedometer` en iOS), permiso pedido de forma perezosa al tocar "¡Vamos a pawsear!" (`Permission.activityRecognition` en Android, `Permission.sensors` en iOS), conteo en vivo junto al timer, y guardado en `paseos.pasos` al detener el paseo.
+  - **Obligatorio, no degradado** (decisión revisada 2026-07-26, invierte la degradación planeada en `producto.md` §9): sin permiso concedido o sin que el sensor responda, el paseo **no arranca** — se muestra una explicación en vez de guardar el paseo sin ese dato. Solo queda `null` en el caso residual de que el sensor falle a mitad de un paseo ya en curso (ver `specs/podometro.md` §6).
+  - El emulador de Android no puede simular el sensor de pasos (confirmado en la documentación oficial) — esta función **no se puede probar en el emulador**, solo en un dispositivo real.
+  - Verificado con `flutter analyze` limpio y tests de dominio/repository. **Pendiente de correr en un dispositivo Android real** (no probado en este entorno). **iOS no se pudo compilar ni probar** (`ios/Podfile` recién se generó, sin Mac disponible para `pod install`) — queda validado por lectura de código, no por un build real.
 📄 Spec: [`specs/podometro.md`](specs/podometro.md)
 
 ### ⬜ Sistema de experiencia, niveles y logros (por perro)
@@ -45,8 +48,8 @@ No iniciado — sin tabla, sin UI, sin placeholder siquiera.
 📄 Spec: [`specs/checkin_pois.md`](specs/checkin_pois.md)
 
 ### ⬜ Historial de paseos y tarjeta compartible
-Cada paseo queda guardado en la base (`paseos`, con duración e inicio/fin), pero **no hay ninguna pantalla que muestre ese historial** — solo se ve el paseo activo mientras está en curso. La tarjeta compartible (foto + estadísticas + nivel para redes sociales) no está iniciada.
-📄 Specs: [`specs/historial_paseos.md`](specs/historial_paseos.md) · [`specs/tarjeta_compartible.md`](specs/tarjeta_compartible.md)
+Cada paseo queda guardado en la base (`paseos`, con duración e inicio/fin), pero **no hay ninguna pantalla que muestre ese historial** — solo se ve el paseo activo mientras está en curso. La tarjeta compartible (foto + estadísticas + nivel para redes sociales) no está iniciada. Se agregó (2026-07-26) un tercer spec, **resumen de paseo** — pantalla automática al detener el paseo con duración, pasos, POI visitados y XP ganada — que depende de `checkin_pois.md`/`xp_niveles.md` y se superpone con `tarjeta_compartible.md`; esa superposición queda como pregunta abierta explícita en el spec nuevo, sin resolver todavía.
+📄 Specs: [`specs/historial_paseos.md`](specs/historial_paseos.md) · [`specs/tarjeta_compartible.md`](specs/tarjeta_compartible.md) · [`specs/resumen_paseo.md`](specs/resumen_paseo.md)
 
 ### ✅ Ficha clínica del perro
 Raza, sexo, peso, color, características, fecha de nacimiento (con opción de aproximada) — todo implementado, con catálogos de razas/colores reales migrados y editable desde `EditarMascotaScreen`.

@@ -1,7 +1,7 @@
 # Modelo de Datos
 
 **Estado:** `razas`, `colores`, `mascotas`, `mascotas_perfiles`, `paseos`, `paseos_mascotas`, `tipos_poi`, `pois` y el bucket `mascota-fotos` están migrados y **aplicados en `pawseo-dev`** (`supabase/migrations/2026072301*`, más `20260723153244` — fix de RLS, ver Decisiones —, `20260723162150` — catálogo de colores final — y `20260724015629` — POIs, seed ilustrativo en Santiago). `logros`/`mascotas_logros` siguen solo en diseño, sin migración. `paseos_pois` (check-in con recompensa) también sigue sin migrar — ver nota en la sección `pois`.
-**Fecha:** 2026-07-24 (última actualización)
+**Fecha:** 2026-07-26 (última actualización)
 **Relacionado con:** `docs/producto.md` §7 (alcance MVP), `docs/tecnico.md` §3 (esquema y control de versiones) y §6 (pendiente inmediato)
 
 ---
@@ -68,7 +68,7 @@ Se puebla vía **trigger** al crear la mascota (análogo al de `perfiles` en el 
 | `id` | uuid, PK | |
 | `iniciado_en` | timestamptz | |
 | `finalizado_en` | timestamptz, nullable | nullable deja espacio a un paseo "en curso" sin columna de estado aparte |
-| `pasos` | integer, nullable | nullable por dispositivos sin sensor de podómetro (`producto.md` §9) |
+| `pasos` | integer, nullable | el podómetro es obligatorio para iniciar un paseo (revisado 2026-07-26, `specs/podometro.md`) -- nullable solo queda por el caso residual de que el sensor falle a mitad de un paseo ya en curso, no por dispositivos sin soporte (esos ya no pueden iniciar un paseo) |
 | `creado_por` | uuid, FK → `perfiles`, **not null**, default `auth.uid()` | agregado post-implementación — ver Decisiones |
 
 ### `paseos_mascotas` (join — un paseo puede tener más de un perro)
@@ -141,6 +141,8 @@ Radio de check-in: **fijo, 50m** — constante en código (Edge Function/`domain
 - **Cooldown anti-farming se valida contra (mascota, poi)**, no contra (paseo, poi) — el XP es por perro, así que la pregunta relevante es "¿esta mascota ya reclamó este POI en las últimas X horas, en cualquier paseo?", no solo dentro del paseo actual.
 - **Radio de check-in fijo (50m)** como constante, no columna — simplifica, se revisita si en el futuro un tipo de POI necesita un radio distinto.
 - **`color` como catálogo de selección única** + `caracteristicas` como texto libre corto (≤50) para matices que no entran en una lista cerrada (ej. "negro y blanco").
+- **Pasos del podómetro: base + delta, nunca suma de eventos del stream** -- tanto `TYPE_STEP_COUNTER` (Android) como el wrapper iOS de `pedometer` (`CMPedometer.startUpdates(from: dateOfLastReboot)`) son acumulativos desde el último reinicio del dispositivo, no desde que se empieza a escuchar el stream -- verificado leyendo el código fuente de ambos plugins, no asumido. Por eso el paseo guarda (lectura al detener − lectura al iniciar). Esto resuelve gratis el comportamiento en segundo plano: el sensor de hardware sigue contando aunque Flutter pierda eventos del stream en background, porque solo se necesitan la primera y la última lectura. Si el dispositivo se reinicia **a mitad de un paseo ya en curso**, el delta da negativo y `pasos` queda `null` para ese paseo puntual -- caso distinto y residual, no confundir con "dispositivo sin sensor" (ver bullet siguiente), que directamente bloquea el inicio del paseo.
+- **Podómetro obligatorio, no degradado** (revisado 2026-07-26, pedido explícito de Kevin -- invierte tanto la decisión original de `specs/podometro.md` como el riesgo documentado en `producto.md` §9): sin permiso de actividad física concedido, o sin que el sensor responda a una suscripción de prueba, el paseo no se inicia -- se bloquea con una explicación en vez de guardarse sin ese dato. La única forma de detectar "no hay sensor" es intentar suscribirse y ver si llega un evento o un error (el plugin no expone un chequeo directo), verificado en el código nativo de ambas plataformas. El emulador de Android no tiene este sensor bajo ninguna circunstancia (confirmado en la documentación oficial de Extended Controls), así que esta función solo se puede probar en un dispositivo real.
 - **Se descartó agregar quién registró el paseo** (dueño específico dentro del hogar) — decisión de producto: el protagonista es la mascota, no hay competencia entre dueños. Es aditivo y barato agregarlo después si cambia el criterio; no se justifica ahora.
 - **Nombres de tabla en plural**, consistente con `perfiles` (ya implementada).
 - **Solo `nombre` es obligatorio al crear una mascota** — el resto (foto, raza, nacimiento, color, características, sexo, peso) se completa después en una ficha editable. Esto además es la base de un logro ("completar la ficha").
@@ -157,7 +159,7 @@ Radio de check-in: **fijo, 50m** — constante en código (Edge Function/`domain
 - **POI patrocinado** (fase 3 de negocio, `producto.md` §8) — no bloqueante para MVP; cuando se active, probablemente un flag en `pois` + relación con el comercio dueño.
 - **XP y `stats`**: al detener un paseo hoy no se otorga experiencia -- la tabla `stats` y la curva de niveles siguen sin implementar. El paseo se guarda con su duración, pero no impacta nivel/XP todavía. El tab "Mi Mascota" (`mi_mascota_screen.dart`) ya tiene un placeholder visual de nivel/XP con valores fijos -- pendiente reemplazar por datos reales cuando se diseñe la curva.
 - ~~Selección de con qué perro(s) salir a pasear~~ **Resuelto** (2026-07-24): con 2+ mascotas, el botón "¡Vamos a pawsear!" pregunta con cuáles ir (todas premarcadas por defecto) vía `paseo_mascotas_selector.dart` / `debeMostrarSelectorMascotas` (`paseo_mascota_selection.dart`). Con 1 sola mascota no pregunta, pasea directo con ella.
-- **Conteo de pasos (podómetro)**: `paseos.pasos` queda siempre `null` por ahora -- la integración con el sensor de pasos del dispositivo no está implementada (requiere permisos de Android 10+ y un paquete de pedómetro, se dejó fuera de esta iteración).
+- ~~Conteo de pasos (podómetro)~~ **Resuelto** (2026-07-26): implementado vía `pedometer` (`TYPE_STEP_COUNTER` en Android, `CMPedometer` en iOS) + `permission_handler` para el permiso -- **no es el mismo permiso en ambas plataformas**: `Permission.activityRecognition` en Android, `Permission.sensors` en iOS (verificado leyendo el código fuente de `permission_handler_apple`, no asumido). Obligatorio para pasear (ver decisiones de diseño más abajo) -- `paseos.pasos` solo queda `null` en el caso residual de que el sensor falle a mitad de un paseo ya en curso, no por dispositivos sin soporte o permiso denegado (esos bloquean el inicio del paseo). Sin verificar todavía en un dispositivo Android real ni en iOS (sin Mac disponible para compilar); no verificable en absoluto en el emulador de Android (sin sensor de pasos).
 - **Paseo en curso no persiste entre reinicios de la app**: el estado de "hay un paseo activo" vive en memoria (Riverpod), no se recupera si se cierra la app a mitad de un paseo.
 
 ---

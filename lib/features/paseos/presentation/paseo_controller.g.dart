@@ -11,6 +11,12 @@ part of 'paseo_controller.dart';
 /// Estado en memoria, no persistido -- si se cierra la app a mitad de un
 /// paseo, al volver a abrirla no queda "en curso" (se resuelve más
 /// adelante si hace falta, no bloqueante para esta primera versión).
+///
+/// La suscripción al podómetro vive acá (y no en el widget, a diferencia del
+/// ticker del timer en `paseo_screen.dart`) porque la lectura base tiene que
+/// sobrevivir hasta que se llame `detener()`, y este provider sobrevive a un
+/// rebuild del widget -- el timer en cambio es puramente cosmético, se puede
+/// recalcular en cualquier momento desde `iniciadoEn`.
 
 @ProviderFor(PaseoController)
 final paseoControllerProvider = PaseoControllerProvider._();
@@ -18,11 +24,23 @@ final paseoControllerProvider = PaseoControllerProvider._();
 /// Estado en memoria, no persistido -- si se cierra la app a mitad de un
 /// paseo, al volver a abrirla no queda "en curso" (se resuelve más
 /// adelante si hace falta, no bloqueante para esta primera versión).
+///
+/// La suscripción al podómetro vive acá (y no en el widget, a diferencia del
+/// ticker del timer en `paseo_screen.dart`) porque la lectura base tiene que
+/// sobrevivir hasta que se llame `detener()`, y este provider sobrevive a un
+/// rebuild del widget -- el timer en cambio es puramente cosmético, se puede
+/// recalcular en cualquier momento desde `iniciadoEn`.
 final class PaseoControllerProvider
     extends $NotifierProvider<PaseoController, PaseoControllerState> {
   /// Estado en memoria, no persistido -- si se cierra la app a mitad de un
   /// paseo, al volver a abrirla no queda "en curso" (se resuelve más
   /// adelante si hace falta, no bloqueante para esta primera versión).
+  ///
+  /// La suscripción al podómetro vive acá (y no en el widget, a diferencia del
+  /// ticker del timer en `paseo_screen.dart`) porque la lectura base tiene que
+  /// sobrevivir hasta que se llame `detener()`, y este provider sobrevive a un
+  /// rebuild del widget -- el timer en cambio es puramente cosmético, se puede
+  /// recalcular en cualquier momento desde `iniciadoEn`.
   PaseoControllerProvider._()
     : super(
         from: null,
@@ -50,11 +68,17 @@ final class PaseoControllerProvider
   }
 }
 
-String _$paseoControllerHash() => r'cdb0e9a52dc9039d254e242b1799b7c5459c827e';
+String _$paseoControllerHash() => r'c70d190da2ce4755ce3732b9ba55ea209413ca24';
 
 /// Estado en memoria, no persistido -- si se cierra la app a mitad de un
 /// paseo, al volver a abrirla no queda "en curso" (se resuelve más
 /// adelante si hace falta, no bloqueante para esta primera versión).
+///
+/// La suscripción al podómetro vive acá (y no en el widget, a diferencia del
+/// ticker del timer en `paseo_screen.dart`) porque la lectura base tiene que
+/// sobrevivir hasta que se llame `detener()`, y este provider sobrevive a un
+/// rebuild del widget -- el timer en cambio es puramente cosmético, se puede
+/// recalcular en cualquier momento desde `iniciadoEn`.
 
 abstract class _$PaseoController extends $Notifier<PaseoControllerState> {
   PaseoControllerState build();
