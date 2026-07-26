@@ -5,4 +5,5 @@ abstract final class PoisStrings {
   static String xpLabel(int xp) => '+$xp XP al visitar';
   static const nuncaVisitadoLabel = 'Aún no has visitado este lugar';
   static String ultimaVisitaLabel(String fecha) => 'Última visita: $fecha';
+  static const sinFotoLabel = 'Sin foto todavía';
 }

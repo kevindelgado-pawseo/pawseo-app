@@ -10,6 +10,10 @@ import 'pois_strings.dart';
 /// check-in real, verificado por GPS, es una feature aparte, ver
 /// docs/modelo_datos.md), así que "nunca visitado" es el estado real, no
 /// un placeholder falso.
+///
+/// La sección de foto siempre reserva el mismo espacio -- si `fotoUrl` es
+/// nulo o la carga falla, se ve `_PoiFotoPlaceholder` en su lugar, para
+/// poder previsualizar cómo va a quedar la card antes de tener fotos reales.
 Future<void> mostrarDetallePoi(
   BuildContext context,
   Poi poi, {
@@ -42,20 +46,20 @@ class _PoiDetalleSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (fotoUrl != null) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  fotoUrl,
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const SizedBox.shrink(),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: fotoUrl == null
+                  ? const _PoiFotoPlaceholder()
+                  : Image.network(
+                      fotoUrl,
+                      height: 160,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const _PoiFotoPlaceholder(),
+                    ),
+            ),
+            const SizedBox(height: 16),
             Text(poi.nombre, style: Theme.of(context).textTheme.titleLarge),
             if (descripcion != null) ...[
               const SizedBox(height: 8),
@@ -80,6 +84,36 @@ class _PoiDetalleSheet extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PoiFotoPlaceholder extends StatelessWidget {
+  const _PoiFotoPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      height: 160,
+      width: double.infinity,
+      color: colorScheme.surfaceContainerHighest,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.image_outlined,
+            size: 40,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            PoisStrings.sinFotoLabel,
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
+          ),
+        ],
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../../core/theme/map_style.dart';
 import '../../../core/utils/duration_format.dart';
 import '../../../core/utils/map_defaults.dart';
 import '../../../core/widgets/pawseo_button.dart';
@@ -204,6 +205,7 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
             target: MapDefaults.fallbackCenter,
             zoom: MapDefaults.fallbackZoom,
           ),
+          style: MapStyle.cozy,
           onMapCreated: (controller) => _mapController = controller,
           markers: pois.map(_markerFromPoi).toSet(),
         ),
