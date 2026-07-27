@@ -68,7 +68,7 @@ final class PaseoControllerProvider
   }
 }
 
-String _$paseoControllerHash() => r'c70d190da2ce4755ce3732b9ba55ea209413ca24';
+String _$paseoControllerHash() => r'f2c057ad4fb9ac3a02a1514ec2d48b55f2ee7f5b';
 
 /// Estado en memoria, no persistido -- si se cierra la app a mitad de un
 /// paseo, al volver a abrirla no queda "en curso" (se resuelve más

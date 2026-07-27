@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../onboarding/data/onboarding_repository.dart';
+import 'debug_settings_controller.dart';
 
 /// Herramientas de desarrollo — la ruta solo se registra con kDebugMode
 /// (ver app_router.dart), nunca alcanzable en un build de release.
@@ -26,6 +27,17 @@ class DebugSettingsScreen extends ConsumerWidget {
               await ref.read(onboardingRepositoryProvider).resetOnboarding();
               if (context.mounted) context.go(AppRoutes.onboarding);
             },
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.directions_walk),
+            title: const Text('Omitir requisito de podómetro'),
+            subtitle: const Text(
+              'Permite pasear sin sensor de pasos -- útil en el emulador, '
+              'que no puede simularlo',
+            ),
+            value: ref.watch(omitirRequisitoPodometroProvider),
+            onChanged: (value) =>
+                ref.read(omitirRequisitoPodometroProvider.notifier).set(value),
           ),
         ],
       ),

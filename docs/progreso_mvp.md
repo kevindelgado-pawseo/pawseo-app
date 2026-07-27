@@ -29,8 +29,10 @@ La base de datos ya soporta multi-dueño (`mascotas_perfiles` es una tabla mucho
 - Multi-perro: hecho — con 2+ mascotas pregunta con cuáles ir (todas premarcadas por defecto), con 1 arranca directo.
 - **Pasos (podómetro): hecho** (2026-07-26) — sensor de pasos vía `pedometer` (`TYPE_STEP_COUNTER` en Android, `CMPedometer` en iOS), permiso pedido de forma perezosa al tocar "¡Vamos a pawsear!" (`Permission.activityRecognition` en Android, `Permission.sensors` en iOS), conteo en vivo junto al timer, y guardado en `paseos.pasos` al detener el paseo.
   - **Obligatorio, no degradado** (decisión revisada 2026-07-26, invierte la degradación planeada en `producto.md` §9): sin permiso concedido o sin que el sensor responda, el paseo **no arranca** — se muestra una explicación en vez de guardar el paseo sin ese dato. Solo queda `null` en el caso residual de que el sensor falle a mitad de un paseo ya en curso (ver `specs/podometro.md` §6).
-  - El emulador de Android no puede simular el sensor de pasos (confirmado en la documentación oficial) — esta función **no se puede probar en el emulador**, solo en un dispositivo real.
+  - El emulador de Android no puede simular el sensor de pasos (confirmado en la documentación oficial) — esta función **no se puede probar en el emulador**, salvo que se active el toggle de debug descrito abajo.
+  - **Toggle de debug** (2026-07-26, `DebugSettingsScreen`, `kDebugMode` + flag persistido con `SharedPreferences`): "Omitir requisito de podómetro" permite pasear sin el sensor específicamente para poder probar el resto del flujo en el emulador — inerte por diseño en cualquier build de release (doble llave: la pantalla ya es inalcanzable, y el chequeo del flag además está envuelto en `kDebugMode`).
   - Verificado con `flutter analyze` limpio y tests de dominio/repository. **Pendiente de correr en un dispositivo Android real** (no probado en este entorno). **iOS no se pudo compilar ni probar** (`ios/Podfile` recién se generó, sin Mac disponible para `pod install`) — queda validado por lectura de código, no por un build real.
+- **Mapa centrado en la posición real** (2026-07-26): si ya había permiso de ubicación precisa concedido de una sesión anterior, el mapa centra solo en la ubicación real del usuario apenas se abre el tab Paseo, en vez de quedarse fijo en el fallback (Plaza Egaña) hasta tocar "Pawsear".
 📄 Spec: [`specs/podometro.md`](specs/podometro.md)
 
 ### ⬜ Sistema de experiencia, niveles y logros (por perro)
@@ -43,6 +45,7 @@ No iniciado — sin tabla, sin UI, sin placeholder siquiera.
 
 ### 🟡 Puntos de interés con check-in verificado por GPS e insignias coleccionables
 - Hecho: `pois`/`tipos_poi` migrados y con RLS, mapa del tab Paseo con estilo cozy propio, marcadores circulares personalizados (foto o inicial), modal de detalle (descripción + XP que otorgaría). Seed real (no ilustrativo) de 3 lugares cerca de Mall Plaza Egaña — falta expandir a la curación completa por comuna piloto.
+- **Avance relevante (2026-07-26), aunque no es el check-in en sí**: ya existe tracking continuo de ubicación mientras el paseo está activo (`_iniciarSeguimientoCamara`, `paseo_screen.dart`) — se construyó para que la cámara siga al usuario en el mapa, pero es la misma pieza de arquitectura que `checkin_pois.md` marcaba como el mayor riesgo/cambio no trivial pendiente. Sigue sin existir: comparar posición contra POI a 50m, la Edge Function, y el cooldown. El stream de hoy es solo foreground (sin permiso de ubicación en segundo plano).
 - **Pendiente: el check-in en sí.** Hoy el modal siempre dice "nunca has visitado este lugar" porque no existe ningún registro de visitas — ni verificación de proximidad GPS, ni Edge Function, ni cooldown anti-farming (`paseos_pois` no está migrada, a propósito).
 - **Pendiente: insignias coleccionables** — no hay ningún concepto de insignia/badge implementado todavía.
 📄 Spec: [`specs/checkin_pois.md`](specs/checkin_pois.md)

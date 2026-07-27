@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -12,6 +13,7 @@ import '../../../core/utils/duration_format.dart';
 import '../../../core/utils/map_defaults.dart';
 import '../../../core/widgets/pawseo_button.dart';
 import '../../../core/widgets/pawseo_floating_button.dart';
+import '../../debug_settings/data/debug_settings_repository.dart';
 import '../../mascotas/data/mascotas_repository.dart';
 import '../../mascotas/domain/mascota.dart';
 import '../../mascotas/presentation/mascotas_empty_state.dart';
@@ -91,6 +93,17 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
     setState(() => _ubicacionPrecisaConcedida = concedida);
   }
 
+  /// Si ya había permiso de ubicación precisa concedido de una sesión
+  /// anterior, centra el mapa en la posición real apenas el mapa está listo
+  /// -- en vez de dejarlo fijo en `MapDefaults.fallbackCenter` hasta que el
+  /// usuario toque "Pawsear". Se dispara desde `onMapCreated`, no desde
+  /// `initState`, porque necesita `_mapController` ya asignado.
+  Future<void> _centrarInicialSiYaHayPermiso() async {
+    if (await _tieneUbicacionPrecisa()) {
+      await _geolocalizarYCentrar();
+    }
+  }
+
   Future<bool> _tieneUbicacionPrecisa() async {
     if (!await Geolocator.isLocationServiceEnabled()) return false;
 
@@ -165,7 +178,17 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
   /// función. Permiso denegado es corregible (Ajustes); sensor inexistente
   /// no lo es -- por eso ese caso no ofrece ningún botón (ver
   /// `requisito_paseo_sheet.dart`).
+  ///
+  /// El toggle de debug (`DebugSettingsScreen`) solo tiene efecto bajo
+  /// `kDebugMode` -- doble llave a propósito: aunque la ruta de debug ya es
+  /// inalcanzable en release, este chequeo extra evita que el bypass exista
+  /// como posibilidad siquiera fuera de un build de debug.
   Future<bool> _asegurarPodometroDisponible() async {
+    if (kDebugMode &&
+        ref.read(debugSettingsRepositoryProvider).omitirRequisitoPodometro) {
+      return true;
+    }
+
     final status = await permisoPodometro().request();
     if (!status.isGranted) {
       if (mounted) {
@@ -422,7 +445,10 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
           style: MapStyle.cozy,
           myLocationEnabled: _ubicacionPrecisaConcedida,
           myLocationButtonEnabled: _ubicacionPrecisaConcedida,
-          onMapCreated: (controller) => _mapController = controller,
+          onMapCreated: (controller) {
+            _mapController = controller;
+            unawaited(_centrarInicialSiYaHayPermiso());
+          },
           markers: pois.map(_markerFromPoi).toSet(),
         ),
         SafeArea(
