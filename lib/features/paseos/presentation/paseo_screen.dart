@@ -443,6 +443,13 @@ class _PaseoMapaSectionState extends ConsumerState<_PaseoMapaSection> {
             zoom: MapDefaults.fallbackZoom,
           ),
           style: MapStyle.cozy,
+          // "Map Toolbar" nativo de Android: al tocar cualquier marcador
+          // (el nuestro o un POI de Google) el SDK agrega sus propios
+          // botones (direcciones / abrir en Maps / Street View) encima de
+          // nuestro modal -- MapStyle.cozy ya apaga los POIs de Google
+          // visualmente, pero no controla esta barra, que es una capa
+          // aparte. Sin efecto en iOS.
+          mapToolbarEnabled: false,
           myLocationEnabled: _ubicacionPrecisaConcedida,
           myLocationButtonEnabled: _ubicacionPrecisaConcedida,
           onMapCreated: (controller) {
